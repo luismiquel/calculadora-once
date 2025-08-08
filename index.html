@@ -54,13 +54,22 @@
     .resumen-mensual {
       background: #ccc;
     }
+    .alerta {
+      font-weight: bold;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      border-radius: 5px;
+    }
+    .verde { background: #d4edda; color: #155724; }
+    .naranja { background: #fff3cd; color: #856404; }
+    .rojo { background: #f8d7da; color: #721c24; }
   </style>
 </head>
 <body>
   <h1>Calculadora de Comisiones ONCE 2025</h1>
 
   <label>Tipo de producto:</label>
-  <select id="tipo">
+  <select id="tipo" onchange="autocompletarPrecio()">
     <option value="diario">Diario</option>
     <option value="cuponazo">Cuponazo</option>
     <option value="sueldazo">Sueldazo</option>
@@ -93,12 +102,12 @@
 
   <script>
     const comisiones = {
-      diario: { categoria: "Muy alto", porcentaje: 0.18, minimo: 142, umbral: 210 },
-      cuponazo: { categoria: "Muy alto", porcentaje: 0.19, minimo: 142, umbral: 210 },
-      sueldazo: { categoria: "Muy alto", porcentaje: 0.20, minimo: 142, umbral: 210 },
-      rasca: { categoria: "Alto", porcentaje: 0.14, minimo: 142, umbral: 210 },
-      resto: { categoria: "Resto", porcentaje: 0.08, minimo: 142, umbral: 210 },
-      extraordinario: { categoria: "Muy alto", porcentaje: 0.25, minimo: 142, umbral: 210 },
+      diario: { categoria: "Muy alto", porcentaje: 0.18, minimo: 142, umbral: 210, precio: 2.00 },
+      cuponazo: { categoria: "Muy alto", porcentaje: 0.19, minimo: 142, umbral: 210, precio: 3.00 },
+      sueldazo: { categoria: "Muy alto", porcentaje: 0.20, minimo: 142, umbral: 210, precio: 2.00 },
+      rasca: { categoria: "Alto", porcentaje: 0.14, minimo: 142, umbral: 210, precio: 2.00 },
+      resto: { categoria: "Resto", porcentaje: 0.08, minimo: 142, umbral: 210, precio: 1.00 },
+      extraordinario: { categoria: "Muy alto", porcentaje: 0.25, minimo: 142, umbral: 210, precio: 2.00 },
     };
 
     const memoria = {
@@ -110,6 +119,11 @@
       sábado: 0,
       domingo: 0,
     };
+
+    function autocompletarPrecio() {
+      const tipo = document.getElementById("tipo").value;
+      document.getElementById("precio").value = comisiones[tipo].precio.toFixed(2);
+    }
 
     function calcularComision() {
       const tipo = document.getElementById("tipo").value;
@@ -127,13 +141,19 @@
       }
 
       const comision = total * porcentaje;
+      let alertaClase = "rojo";
+      if (total >= umbral) alertaClase = "verde";
+      else if (total >= minimo) alertaClase = "naranja";
 
       document.getElementById("resultado").innerHTML = `
         🔢 Vendidos: ${cantidad} cupones × ${precio.toFixed(2)} € = ${total.toFixed(2)} €<br>
         📅 Días: ${dias} → Mínimo: ${minimo.toFixed(2)} € | Umbral: ${umbral.toFixed(2)} €<br>
         📊 Categoría: ${comisiones[tipo].categoria}<br>
         📈 Comisión: ${(porcentaje * 100).toFixed(2)}%<br>
-        💰 Ganancia estimada: ${comision.toFixed(2)} €`;
+        💰 Ganancia estimada: ${comision.toFixed(2)} €<br>
+        <div class="alerta ${alertaClase}">
+          ${alertaClase === 'verde' ? '✅ Ya cobras comisión' : alertaClase === 'naranja' ? '⚠️ Aún no cobras comisión' : '❌ Por debajo del mínimo'}
+        </div>`;
 
       const diaActual = new Date().toLocaleDateString("es-ES", { weekday: "long" }).toLowerCase();
       if (memoria.hasOwnProperty(diaActual)) {
