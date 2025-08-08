@@ -2,57 +2,56 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calculadora Comisiones ONCE 2025</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calculadora ONCE 2025</title>
   <style>
     body {
-      font-family: sans-serif;
-      background-color: #f5f5f5;
-      color: #333;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
       max-width: 600px;
       margin: auto;
-      padding: 20px;
     }
-    label, input, select {
-      display: block;
+    h1 { color: #005a9c; }
+    label { display: block; margin-top: 10px; }
+    select, input {
+      padding: 5px;
       width: 100%;
-      margin-bottom: 15px;
-      font-size: 1rem;
+      max-width: 300px;
     }
     button {
-      background-color: #008000;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #005a9c;
       color: white;
       border: none;
-      padding: 10px;
-      font-size: 1rem;
       cursor: pointer;
     }
     #resultado {
       margin-top: 20px;
-      font-size: 1.2rem;
       font-weight: bold;
+      background: #fff;
+      padding: 15px;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
   <h1>Calculadora de Comisiones ONCE 2025</h1>
-  <label for="dias">Días trabajados este mes:</label>
-  <input type="number" id="dias" min="1" max="31" value="20">
-
-  <label for="ventas">Total de ventas en euros (€):</label>
-  <input type="number" id="ventas" min="0" value="0">
 
   <label for="producto">Tipo de producto:</label>
   <select id="producto">
-    <option value="diario">Cupón Diario</option>
-    <option value="cuponazo">Cuponazo</option>
-    <option value="sueldazo">Sueldazo</option>
-    <option value="rascas">Rascas</option>
+    <option value="diario">Diario</option>
+    <option value="cuponazo">Cuponazo / Sueldazo</option>
+    <option value="rascas">Rascas / Activos</option>
     <option value="extra">Extraordinario</option>
   </select>
 
-  <label for="cupones">Cupones vendidos (solo para extraordinarios):</label>
-  <input type="number" id="cupones" min="0" value="0">
+  <label for="dias">Días trabajados (1-26):</label>
+  <input type="number" id="dias" min="1" max="26" value="20" />
+
+  <label for="ventas">Total vendido (€) o cupones (Extra):</label>
+  <input type="number" id="ventas" step="0.01" min="0" />
 
   <button onclick="calcularComision()">Calcular Comisión</button>
 
@@ -60,48 +59,46 @@
 
   <script>
     function calcularComision() {
-      const dias = parseInt(document.getElementById('dias').value);
-      const ventas = parseFloat(document.getElementById('ventas').value);
-      const producto = document.getElementById('producto').value;
-      const cupones = parseInt(document.getElementById('cupones').value);
-      
-      let minimo = dias * 210;
-      let umbral = dias * 142;
-      let comision = 0;
+      const producto = document.getElementById("producto").value;
+      const dias = parseInt(document.getElementById("dias").value);
+      const ventas = parseFloat(document.getElementById("ventas").value);
+      const resultado = document.getElementById("resultado");
+
+      if (!ventas || ventas <= 0 || dias <= 0 || dias > 26) {
+        resultado.textContent = "Introduce datos válidos.";
+        return;
+      }
+
+      const minimo = (dias * 142).toFixed(2);
+      const umbral = (dias * 210).toFixed(2);
       let porcentaje = 0;
 
-      if (producto === 'extra') {
+      if (producto === "diario") {
+        if (ventas >= umbral) porcentaje = 17.5;
+        else if (ventas >= minimo) porcentaje = 7;
+      } else if (producto === "cuponazo") {
+        if (ventas >= umbral) porcentaje = 15;
+        else if (ventas >= minimo) porcentaje = 6;
+      } else if (producto === "rascas") {
+        if (ventas >= umbral) porcentaje = 10.5;
+        else if (ventas >= minimo) porcentaje = 4.5;
+      } else if (producto === "extra") {
+        const cupones = ventas;
         if (cupones >= 600) porcentaje = 17;
         else if (cupones >= 500) porcentaje = 16;
         else if (cupones >= 400) porcentaje = 15;
         else if (cupones >= 300) porcentaje = 14;
         else if (cupones >= 200) porcentaje = 13;
         else if (cupones >= 1) porcentaje = 12;
-      } else {
-        if (ventas < umbral) {
-          porcentaje = 0;
-        } else if (ventas >= umbral && ventas < minimo) {
-          porcentaje = 5; // porcentaje reducido si supera el umbral pero no el mínimo
-        } else {
-          // tramo completo por tipo
-          switch (producto) {
-            case 'diario': porcentaje = 13; break;
-            case 'cuponazo': porcentaje = 12; break;
-            case 'sueldazo': porcentaje = 11; break;
-            case 'rascas': porcentaje = 10; break;
-          }
-        }
       }
 
-      comision = ventas * (porcentaje / 100);
-      
-      let mensaje = `Días trabajados: ${dias}<br>`;
-      mensaje += `Mínimo: ${minimo.toFixed(2)} € | Umbral: ${umbral.toFixed(2)} €<br>`;
-      mensaje += `Ventas: ${ventas.toFixed(2)} €<br>`;
-      mensaje += `Comisión aplicada: ${porcentaje}%<br>`;
-      mensaje += `¡Total ganado: ${comision.toFixed(2)} €!`;
+      const comision = producto === "extra"
+        ? (ventas * 2 * porcentaje / 100).toFixed(2)
+        : (ventas * porcentaje / 100).toFixed(2);
 
-      document.getElementById('resultado').innerHTML = mensaje;
+      resultado.innerHTML = `<p>👉 Comisión: <strong>${porcentaje}%</strong><br>
+                             💰 Ganancia: <strong>${comision} €</strong><br>
+                             🔢 Mínimo: ${minimo} € – Umbral: ${umbral} €</p>`;
     }
   </script>
 </body>
