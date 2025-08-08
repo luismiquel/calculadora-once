@@ -2,146 +2,165 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calculadora de Comisiones ONCE 2025</title>
+  <link rel="manifest" href="manifest.json">
   <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #000000;
+      --primary: #d62828;
+      --secondary: #fcbf49;
+      --accent: #003049;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1e1e1e;
+        --fg: #f0f0f0;
+        --primary: #ff595e;
+        --secondary: #ffca3a;
+        --accent: #8ac926;
+      }
+    }
     body {
       font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      margin: 20px;
-      color: #333;
+      background: var(--bg);
+      color: var(--fg);
+      margin: 0;
+      padding: 1rem;
     }
-    h1, h2 {
-      text-align: center;
+    h1 {
+      color: var(--primary);
     }
-    .producto {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 15px;
-      background: #fff;
-    }
-    label {
-      display: block;
-      margin-top: 8px;
-    }
-    input {
+    select, input[type=number], button {
       width: 100%;
-      padding: 6px;
-      margin-top: 2px;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      font-size: 1rem;
     }
-    button {
-      margin-top: 10px;
-      padding: 10px;
-      width: 100%;
-      background-color: #0077cc;
-      color: white;
-      border: none;
-      cursor: pointer;
+    .resultado {
+      margin-top: 1rem;
+      background: var(--secondary);
+      color: var(--accent);
+      padding: 1rem;
+      border-radius: 8px;
     }
-    .resultado, .resumen {
-      margin-top: 15px;
-      background: #e9f7ef;
-      padding: 10px;
+    .semana, .resumen-mensual {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #eee;
+      border-radius: 8px;
+    }
+    .resumen-mensual {
+      background: #ccc;
     }
   </style>
 </head>
 <body>
   <h1>Calculadora de Comisiones ONCE 2025</h1>
 
-  <div class="producto">
-    <h2>Registro Diario</h2>
-    <label for="dia">Día de la semana:</label>
-    <select id="dia">
-      <option>Lunes</option>
-      <option>Martes</option>
-      <option>Miércoles</option>
-      <option>Jueves</option>
-      <option>Viernes</option>
-      <option>Sábado</option>
-      <option>Domingo</option>
-    </select>
+  <label>Tipo de producto:</label>
+  <select id="tipo">
+    <option value="diario">Diario</option>
+    <option value="cuponazo">Cuponazo</option>
+    <option value="sueldazo">Sueldazo</option>
+    <option value="rasca">Rasca</option>
+    <option value="resto">Resto productos</option>
+    <option value="extraordinario">Extraordinario</option>
+  </select>
 
-    <label>Diarios vendidos (2 €):</label>
-    <input type="number" id="diarios" />
+  <label>Días trabajados (1-26):</label>
+  <input type="number" id="dias" min="1" max="26" value="20">
 
-    <label>Cuponazos vendidos (3 €):</label>
-    <input type="number" id="cuponazos" />
+  <label>Cupones vendidos:</label>
+  <input type="number" id="cantidad" min="0" value="0">
 
-    <label>Sueldazos vendidos (2 €):</label>
-    <input type="number" id="sueldazos" />
+  <label>Precio por cupón (€):</label>
+  <input type="number" id="precio" min="0" step="0.01" value="2.00">
 
-    <label>Total en Rascas (€):</label>
-    <input type="number" id="rascas" />
+  <button onclick="calcularComision()">Calcular Comisión</button>
 
-    <label>Total en Productos Activos (€):</label>
-    <input type="number" id="activos" />
+  <div class="resultado" id="resultado"></div>
 
-    <button onclick="guardarVenta()">💾 Guardar Día</button>
+  <div class="semana">
+    <h3>Memoria Semanal</h3>
+    <div id="diasContainer"></div>
+    <button onclick="resumenSemanal()">Ver resumen semanal</button>
+    <button onclick="descargarCSV()">Exportar a Excel</button>
   </div>
 
-  <div class="producto">
-    <h2>📊 Ver Resumen del Mes</h2>
-    <button onclick="mostrarResumen()">📈 Mostrar Resumen</button>
-    <div class="resumen" id="resumen"></div>
-  </div>
-
-  <div class="producto">
-    <h2>🧹 Borrar Todo</h2>
-    <button onclick="localStorage.clear(); location.reload();">🗑️ Borrar Registros</button>
-  </div>
+  <div class="resumen-mensual" id="resumenMensual"></div>
 
   <script>
-    function guardarVenta() {
-      const dia = document.getElementById('dia').value;
-      const diarios = parseInt(document.getElementById('diarios').value) || 0;
-      const cuponazos = parseInt(document.getElementById('cuponazos').value) || 0;
-      const sueldazos = parseInt(document.getElementById('sueldazos').value) || 0;
-      const rascas = parseFloat(document.getElementById('rascas').value) || 0;
-      const activos = parseFloat(document.getElementById('activos').value) || 0;
+    const comisiones = {
+      diario: { porcentaje: 0.18, minimo: 142, umbral: 210 },
+      cuponazo: { porcentaje: 0.19, minimo: 142, umbral: 210 },
+      sueldazo: { porcentaje: 0.20, minimo: 142, umbral: 210 },
+      rasca: { porcentaje: 0.14, minimo: 142, umbral: 210 },
+      resto: { porcentaje: 0.08, minimo: 142, umbral: 210 },
+      extraordinario: { porcentaje: 0.25, minimo: 142, umbral: 210 },
+    };
 
-      const ventas = JSON.parse(localStorage.getItem('ventas')) || {};
-      ventas[dia] = { diarios, cuponazos, sueldazos, rascas, activos };
-      localStorage.setItem('ventas', JSON.stringify(ventas));
+    const memoria = {
+      lunes: 0,
+      martes: 0,
+      miércoles: 0,
+      jueves: 0,
+      viernes: 0,
+      sábado: 0,
+      domingo: 0,
+    };
 
-      alert('✅ Ventas del día guardadas.');
-    }
+    function calcularComision() {
+      const tipo = document.getElementById("tipo").value;
+      const dias = parseInt(document.getElementById("dias").value);
+      const cantidad = parseInt(document.getElementById("cantidad").value);
+      const precio = parseFloat(document.getElementById("precio").value);
 
-    function mostrarResumen() {
-      const ventas = JSON.parse(localStorage.getItem('ventas')) || {};
-      let totalDiarios = 0, totalCuponazos = 0, totalSueldazos = 0, totalRascas = 0, totalActivos = 0;
+      const total = cantidad * precio;
+      const minimo = comisiones[tipo].minimo * dias;
+      const umbral = comisiones[tipo].umbral * dias;
 
-      Object.values(ventas).forEach(v => {
-        totalDiarios += v.diarios;
-        totalCuponazos += v.cuponazos;
-        totalSueldazos += v.sueldazos;
-        totalRascas += v.rascas;
-        totalActivos += v.activos;
-      });
-
-      const totalVentas = totalDiarios*2 + totalCuponazos*3 + totalSueldazos*2 + totalRascas + totalActivos;
-      const diasTrabajados = Object.keys(ventas).length;
-      const umbral = diasTrabajados * 210; // Umbral base (puede ajustarse)
-      const minimo = diasTrabajados * 142;
-      let comision = 0;
-
-      if (totalVentas >= umbral) {
-        comision = totalVentas * 0.0771;
-      } else if (totalVentas >= minimo) {
-        comision = totalVentas * 0.0505;
+      let porcentaje = 0;
+      if (total >= umbral) {
+        porcentaje = comisiones[tipo].porcentaje;
       }
 
-      document.getElementById('resumen').innerHTML = `
-        🧮 Diarios: ${totalDiarios} → ${totalDiarios*2} €<br>
-        🧮 Cuponazos: ${totalCuponazos} → ${totalCuponazos*3} €<br>
-        🧮 Sueldazos: ${totalSueldazos} → ${totalSueldazos*2} €<br>
-        🧮 Rascas: ${totalRascas.toFixed(2)} €<br>
-        🧮 Activos: ${totalActivos.toFixed(2)} €<br><br>
-        💰 Total vendido: ${totalVentas.toFixed(2)} €<br>
-        📅 Días trabajados: ${diasTrabajados}<br>
-        ✅ Mínimo: ${minimo.toFixed(2)} €<br>
-        🔺 Umbral: ${umbral.toFixed(2)} €<br>
-        💸 Comisión estimada: ${comision.toFixed(2)} €
+      const comision = total * porcentaje;
+
+      document.getElementById("resultado").innerHTML = `
+        🔢 Vendidos: ${cantidad} cupones × ${precio.toFixed(2)} € = ${total.toFixed(2)} €<br>
+        📅 Días: ${dias} → Mínimo: ${minimo.toFixed(2)} € | Umbral: ${umbral.toFixed(2)} €<br>
+        📈 Comisión: ${porcentaje * 100}%<br>
+        💰 Ganancia estimada: ${comision.toFixed(2)} €`;
+    }
+
+    function resumenSemanal() {
+      const container = document.getElementById("diasContainer");
+      let total = 0;
+      let html = "";
+      for (const dia in memoria) {
+        html += `<p><b>${dia}:</b> ${memoria[dia]} cupones</p>`;
+        total += memoria[dia];
+      }
+      document.getElementById("resumenMensual").innerHTML = `
+        <h3>Resumen mensual</h3>
+        <p>Total vendido en la semana: ${total} cupones</p>
       `;
+      container.innerHTML = html;
+    }
+
+    function descargarCSV() {
+      let csv = "Día,Cupones\n";
+      for (const dia in memoria) {
+        csv += `${dia},${memoria[dia]}\n`;
+      }
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ventas_semana.csv";
+      a.click();
     }
   </script>
 </body>
