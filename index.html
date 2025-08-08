@@ -45,7 +45,7 @@
       padding: 1rem;
       border-radius: 8px;
     }
-    .semana, .resumen-mensual {
+    .semana, .resumen-mensual, .historial-ventas, .grafico-container {
       margin-top: 2rem;
       padding: 1rem;
       background: #eee;
@@ -63,6 +63,10 @@
     .verde { background: #d4edda; color: #155724; }
     .naranja { background: #fff3cd; color: #856404; }
     .rojo { background: #f8d7da; color: #721c24; }
+    canvas {
+      width: 100% !important;
+      height: auto !important;
+    }
   </style>
 </head>
 <body>
@@ -100,6 +104,17 @@
 
   <div class="resumen-mensual" id="resumenMensual"></div>
 
+  <div class="historial-ventas">
+    <h3>Historial del Mes</h3>
+    <ul id="historial"></ul>
+  </div>
+
+  <div class="grafico-container">
+    <h3>Gráfica de Ventas</h3>
+    <canvas id="graficoVentas"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     const comisiones = {
       diario: { categoria: "Muy alto", porcentaje: 0.18, minimo: 142, umbral: 210, precio: 2.00 },
@@ -110,15 +125,7 @@
       extraordinario: { categoria: "Muy alto", porcentaje: 0.25, minimo: 142, umbral: 210, precio: 2.00 },
     };
 
-    const memoria = {
-      lunes: 0,
-      martes: 0,
-      miércoles: 0,
-      jueves: 0,
-      viernes: 0,
-      sábado: 0,
-      domingo: 0,
-    };
+    const memoria = {};
 
     function autocompletarPrecio() {
       const tipo = document.getElementById("tipo").value;
@@ -147,7 +154,8 @@
       if (total >= umbral) alertaClase = "verde";
       else if (total >= minimo) alertaClase = "naranja";
 
-      document.getElementById("resultado").innerHTML = `
+      const resultado = document.getElementById("resultado");
+      resultado.innerHTML = `
         🔢 Vendidos: ${cantidad} cupones × ${precio.toFixed(2)} € = ${total.toFixed(2)} €<br>
         📅 Días: ${dias} → Mínimo: ${minimo.toFixed(2)} € | Umbral: ${umbral.toFixed(2)} €<br>
         📊 Categoría: ${comisiones[tipo].categoria}<br>
@@ -157,39 +165,72 @@
           ${alertaClase === 'verde' ? '✅ Ya cobras comisión' : alertaClase === 'naranja' ? '⚠️ Aún no cobras comisión' : '❌ Por debajo del mínimo'}
         </div>`;
 
-      const diaActual = new Date().toLocaleDateString("es-ES", { weekday: "long" }).toLowerCase();
-      if (memoria.hasOwnProperty(diaActual)) {
-        memoria[diaActual] += cantidad;
-      }
+      const fecha = new Date().toLocaleDateString("es-ES");
+      memoria[fecha] = (memoria[fecha] || 0) + cantidad;
+      actualizarHistorial();
+      actualizarGrafico();
+      leerResultado(resultado.innerText);
     }
 
     function resumenSemanal() {
       const container = document.getElementById("diasContainer");
-      let total = 0;
       let html = "";
-      for (const dia in memoria) {
-        html += `<p><b>${dia}:</b> ${memoria[dia]} cupones</p>`;
-        total += memoria[dia];
+      for (const fecha in memoria) {
+        html += `<p><b>${fecha}:</b> ${memoria[fecha]} cupones</p>`;
       }
-      document.getElementById("resumenMensual").innerHTML = `
-        <h3>Resumen mensual</h3>
-        <p>Total vendido en la semana: ${total} cupones</p>
-        <p>Estimación de ingresos si fueran diarios a 2€ con 18% comisión: ${(total * 2 * 0.18).toFixed(2)} €</p>
-      `;
       container.innerHTML = html;
     }
 
     function descargarCSV() {
-      let csv = "Día,Cupones\n";
-      for (const dia in memoria) {
-        csv += `${dia},${memoria[dia]}\n`;
+      let csv = "Fecha,Cupones\n";
+      for (const fecha in memoria) {
+        csv += `${fecha},${memoria[fecha]}\n`;
       }
       const blob = new Blob([csv], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "ventas_semana.csv";
+      a.download = "ventas_mes.csv";
       a.click();
+    }
+
+    function actualizarHistorial() {
+      const lista = document.getElementById("historial");
+      lista.innerHTML = "";
+      for (const fecha in memoria) {
+        const li = document.createElement("li");
+        li.textContent = `${fecha}: ${memoria[fecha]} cupones`;
+        lista.appendChild(li);
+      }
+    }
+
+    let grafico;
+    function actualizarGrafico() {
+      const ctx = document.getElementById('graficoVentas').getContext('2d');
+      if (grafico) grafico.destroy();
+      grafico = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(memoria),
+          datasets: [{
+            label: 'Cupones vendidos',
+            data: Object.values(memoria),
+            backgroundColor: '#fcbf49'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true }
+          }
+        }
+      });
+    }
+
+    function leerResultado(texto) {
+      const voz = new SpeechSynthesisUtterance(texto);
+      speechSynthesis.speak(voz);
     }
   </script>
 </body>
