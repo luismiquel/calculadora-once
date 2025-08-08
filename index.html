@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculadora de Ventas ONCE</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 2rem;
+      text-align: center;
+    }
+    h1 {
+      color: #004c99;
+    }
+    input, button {
+      padding: 0.8rem;
+      font-size: 1.2rem;
+      margin: 1rem;
+      border: none;
+      border-radius: 8px;
+    }
+    input {
+      width: 80%;
+      max-width: 300px;
+    }
+    button {
+      background-color: #004c99;
+      color: white;
+      cursor: pointer;
+    }
+    #resultado {
+      margin-top: 2rem;
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Calculadora de Ventas ONCE</h1>
+  <label for="cupones">Cupones vendidos hoy:</label><br>
+  <input type="number" id="cupones" placeholder="Ej: 200"><br>
+  <button onclick="calcular()">Calcular beneficio</button>
+  <div id="resultado"></div>
+
+  <script>
+    function calcular() {
+      const cupones = parseInt(document.getElementById('cupones').value);
+      const beneficio = 0.18;
+      if (isNaN(cupones) || cupones <= 0) {
+        document.getElementById('resultado').textContent = "Introduce un número válido.";
+      } else {
+        const total = cupones * beneficio;
+        document.getElementById('resultado').textContent = 
+          `Has ganado hoy ${total.toFixed(2)} € en comisiones.`;
+      }
+    }
+  </script>
+</body>
+</html>
