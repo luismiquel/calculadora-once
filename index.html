@@ -132,19 +132,27 @@
   <script>
     const reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recogedor = reconocimiento ? new reconocimiento() : null;
+    if (recogedor) recogedor.recognizing = false;
 
     function iniciarReconocimientoVoz() {
       if (!recogedor) {
         alert("Tu navegador no soporta reconocimiento de voz.");
         return;
       }
+      if (recogedor.recognizing) {
+        alert("El reconocimiento ya está en curso.");
+        return;
+      }
       recogedor.lang = "es-ES";
       recogedor.start();
-      recogedor.onresult = function(event) {
-        const texto = event.results[0][0].transcript.toLowerCase();
-        procesarComandoVoz(texto);
-      };
     }
+
+    recogedor.onstart = () => recogedor.recognizing = true;
+    recogedor.onend = () => recogedor.recognizing = false;
+    recogedor.onresult = function(event) {
+      const texto = event.results[0][0].transcript.toLowerCase();
+      procesarComandoVoz(texto);
+    };
 
     function procesarComandoVoz(texto) {
       const partes = texto.match(/(\d+)\s*cupon(?:es)?\s*(?:vendido|vendidos)?\s*(?:de)?\s*(lunes|martes|miércoles|jueves|viernes|sábado|domingo)/);
