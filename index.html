@@ -40,66 +40,105 @@
   <h1>Calculadora de Comisiones ONCE 2025</h1>
 
   <label for="producto">Tipo de producto:</label>
-  <select id="producto">
+  <select id="producto" onchange="cargarOpciones()">
     <option value="diario">Diario</option>
-    <option value="cuponazo">Cuponazo / Sueldazo</option>
-    <option value="rascas">Rascas / Activos</option>
+    <option value="cuponazo">Cuponazo</option>
+    <option value="sueldazo">Sueldazo</option>
+    <option value="rascas">Rascas</option>
+    <option value="activos">Productos Activos</option>
     <option value="extra">Extraordinario</option>
   </select>
 
   <label for="dias">Días trabajados (1-26):</label>
   <input type="number" id="dias" min="1" max="26" value="20" />
 
-  <label for="ventas">Total vendido (€) o cupones (Extra):</label>
-  <input type="number" id="ventas" step="0.01" min="0" />
+  <label for="cupones">Cupones vendidos:</label>
+  <input type="number" id="cupones" min="1" />
+
+  <label for="precio">Precio por cupón (€):</label>
+  <select id="precio"></select>
 
   <button onclick="calcularComision()">Calcular Comisión</button>
 
   <div id="resultado"></div>
 
   <script>
+    const precios = {
+      diario: [2],
+      cuponazo: [3],
+      sueldazo: [2],
+      rascas: [1, 2, 3, 5, 10],
+      activos: [0.5, 1, 2],
+      extra: [2]
+    };
+
+    function cargarOpciones() {
+      const producto = document.getElementById("producto").value;
+      const precio = document.getElementById("precio");
+      precio.innerHTML = "";
+
+      precios[producto].forEach(p => {
+        const option = document.createElement("option");
+        option.value = p;
+        option.textContent = p.toFixed(2) + " €";
+        precio.appendChild(option);
+      });
+    }
+
     function calcularComision() {
       const producto = document.getElementById("producto").value;
       const dias = parseInt(document.getElementById("dias").value);
-      const ventas = parseFloat(document.getElementById("ventas").value);
+      const cupones = parseInt(document.getElementById("cupones").value);
+      const precio = parseFloat(document.getElementById("precio").value);
       const resultado = document.getElementById("resultado");
 
-      if (!ventas || ventas <= 0 || dias <= 0 || dias > 26) {
+      if (!cupones || cupones <= 0 || dias <= 0 || dias > 26) {
         resultado.textContent = "Introduce datos válidos.";
         return;
       }
 
-      const minimo = (dias * 142).toFixed(2);
-      const umbral = (dias * 210).toFixed(2);
+      const minimo = dias * 142;
+      const umbral = dias * 210;
+      const totalVenta = cupones * precio;
       let porcentaje = 0;
 
-      if (producto === "diario") {
-        if (ventas >= umbral) porcentaje = 17.5;
-        else if (ventas >= minimo) porcentaje = 7;
-      } else if (producto === "cuponazo") {
-        if (ventas >= umbral) porcentaje = 15;
-        else if (ventas >= minimo) porcentaje = 6;
-      } else if (producto === "rascas") {
-        if (ventas >= umbral) porcentaje = 10.5;
-        else if (ventas >= minimo) porcentaje = 4.5;
-      } else if (producto === "extra") {
-        const cupones = ventas;
+      if (producto === "extra") {
         if (cupones >= 600) porcentaje = 17;
         else if (cupones >= 500) porcentaje = 16;
         else if (cupones >= 400) porcentaje = 15;
         else if (cupones >= 300) porcentaje = 14;
         else if (cupones >= 200) porcentaje = 13;
         else if (cupones >= 1) porcentaje = 12;
+      } else {
+        if (producto === "diario") {
+          if (totalVenta >= umbral) porcentaje = 17.5;
+          else if (totalVenta >= minimo) porcentaje = 7;
+        } else if (producto === "cuponazo") {
+          if (totalVenta >= umbral) porcentaje = 15;
+          else if (totalVenta >= minimo) porcentaje = 6;
+        } else if (producto === "sueldazo") {
+          if (totalVenta >= umbral) porcentaje = 15;
+          else if (totalVenta >= minimo) porcentaje = 6;
+        } else if (producto === "rascas") {
+          if (totalVenta >= umbral) porcentaje = 10.5;
+          else if (totalVenta >= minimo) porcentaje = 4.5;
+        } else if (producto === "activos") {
+          if (totalVenta >= umbral) porcentaje = 10.5;
+          else if (totalVenta >= minimo) porcentaje = 4.5;
+        }
       }
 
-      const comision = producto === "extra"
-        ? (ventas * 2 * porcentaje / 100).toFixed(2)
-        : (ventas * porcentaje / 100).toFixed(2);
+      const ganancia = (totalVenta * porcentaje / 100).toFixed(2);
 
-      resultado.innerHTML = `<p>👉 Comisión: <strong>${porcentaje}%</strong><br>
-                             💰 Ganancia: <strong>${comision} €</strong><br>
-                             🔢 Mínimo: ${minimo} € – Umbral: ${umbral} €</p>`;
+      resultado.innerHTML = `
+        <p>🔢 Vendidos: <strong>${cupones}</strong> cupones × <strong>${precio.toFixed(2)} €</strong> = <strong>${totalVenta.toFixed(2)} €</strong></p>
+        <p>📅 Días: ${dias} → Mínimo: ${minimo.toFixed(2)} € | Umbral: ${umbral.toFixed(2)} €</p>
+        <p>📈 Comisión: <strong>${porcentaje}%</strong></p>
+        <p>💰 Ganancia estimada: <strong>${ganancia} €</strong></p>
+      `;
     }
+
+    cargarOpciones();
   </script>
 </body>
 </html>
