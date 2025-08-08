@@ -2,143 +2,180 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Calculadora ONCE 2025</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculadora de Comisiones ONCE 2025</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #f9f9f9;
+      color: #333;
     }
-    h1 { color: #005a9c; }
-    label { display: block; margin-top: 10px; }
-    select, input {
-      padding: 5px;
+    h1 {
+      text-align: center;
+      color: #0077cc;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input[type="number"] {
       width: 100%;
-      max-width: 300px;
+      padding: 8px;
+      margin-top: 0.2rem;
+    }
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 0.2rem;
     }
     button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background: #005a9c;
+      margin-top: 1rem;
+      padding: 10px;
+      width: 100%;
+      background-color: #0077cc;
       color: white;
       border: none;
+      font-size: 1rem;
       cursor: pointer;
     }
-    #resultado {
-      margin-top: 20px;
-      font-weight: bold;
-      background: #fff;
-      padding: 15px;
-      border-radius: 5px;
+    button:hover {
+      background-color: #005fa3;
+    }
+    .resultado, .resumen {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: white;
+      border: 1px solid #ccc;
+    }
+    .dias {
+      margin-top: 2rem;
+    }
+    .dias label {
+      margin-top: 0.5rem;
+    }
+    .footer {
+      text-align: center;
+      font-size: 0.8rem;
+      margin-top: 3rem;
+      color: #999;
     }
   </style>
 </head>
 <body>
+
   <h1>Calculadora de Comisiones ONCE 2025</h1>
 
-  <label for="producto">Tipo de producto:</label>
-  <select id="producto" onchange="cargarOpciones()">
-    <option value="diario">Diario</option>
-    <option value="cuponazo">Cuponazo</option>
-    <option value="sueldazo">Sueldazo</option>
-    <option value="rascas">Rascas</option>
-    <option value="activos">Productos Activos</option>
-    <option value="extra">Extraordinario</option>
-  </select>
+  <div class="dias">
+    <label for="dia">Selecciona el día:</label>
+    <select id="dia">
+      <option value="lunes">Lunes</option>
+      <option value="martes">Martes</option>
+      <option value="miércoles">Miércoles</option>
+      <option value="jueves">Jueves</option>
+      <option value="viernes">Viernes</option>
+      <option value="sábado">Sábado</option>
+      <option value="domingo">Domingo</option>
+    </select>
 
-  <label for="dias">Días trabajados (1-26):</label>
-  <input type="number" id="dias" min="1" max="26" value="20" />
+    <label>Diarios vendidos (2 €):</label>
+    <input type="number" id="diario" min="0" value="0" />
 
-  <label for="cupones">Cupones vendidos:</label>
-  <input type="number" id="cupones" min="1" />
+    <label>Cuponazos vendidos (3 €):</label>
+    <input type="number" id="cuponazo" min="0" value="0" />
 
-  <label for="precio">Precio por cupón (€):</label>
-  <select id="precio"></select>
+    <label>Sueldazos vendidos (2 €):</label>
+    <input type="number" id="sueldazo" min="0" value="0" />
 
-  <button onclick="calcularComision()">Calcular Comisión</button>
+    <label>Total Rascas vendidos (€):</label>
+    <input type="number" id="rascas" min="0" value="0" step="0.01" />
 
-  <div id="resultado"></div>
+    <label>Total Productos Activos (€):</label>
+    <input type="number" id="activos" min="0" value="0" step="0.01" />
+
+    <button onclick="guardarVentas()">💾 Guardar ventas del día</button>
+    <button onclick="verResumen()">📆 Ver resumen del mes</button>
+    <button onclick="borrarDatos()">🗑️ Borrar todo</button>
+  </div>
+
+  <div class="resumen" id="resumen"></div>
+
+  <div class="footer">
+    Desarrollado por Luis Miguel – ONCE 2025
+  </div>
 
   <script>
-    const precios = {
-      diario: [2],
-      cuponazo: [3],
-      sueldazo: [2],
-      rascas: [1, 2, 3, 5, 10],
-      activos: [0.5, 1, 2],
-      extra: [2]
-    };
+    const umbralPorDia = 210; // mínimo diario para comisiones
 
-    function cargarOpciones() {
-      const producto = document.getElementById("producto").value;
-      const precio = document.getElementById("precio");
-      precio.innerHTML = "";
+    function guardarVentas() {
+      const dia = document.getElementById("dia").value;
+      const diario = parseInt(document.getElementById("diario").value) || 0;
+      const cuponazo = parseInt(document.getElementById("cuponazo").value) || 0;
+      const sueldazo = parseInt(document.getElementById("sueldazo").value) || 0;
+      const rascas = parseFloat(document.getElementById("rascas").value) || 0;
+      const activos = parseFloat(document.getElementById("activos").value) || 0;
 
-      precios[producto].forEach(p => {
-        const option = document.createElement("option");
-        option.value = p;
-        option.textContent = p.toFixed(2) + " €";
-        precio.appendChild(option);
-      });
+      const ventas = {
+        diario,
+        cuponazo,
+        sueldazo,
+        rascas,
+        activos
+      };
+
+      localStorage.setItem("ventas_" + dia, JSON.stringify(ventas));
+      alert("✅ Ventas guardadas para " + dia.charAt(0).toUpperCase() + dia.slice(1));
     }
 
-    function calcularComision() {
-      const producto = document.getElementById("producto").value;
-      const dias = parseInt(document.getElementById("dias").value);
-      const cupones = parseInt(document.getElementById("cupones").value);
-      const precio = parseFloat(document.getElementById("precio").value);
-      const resultado = document.getElementById("resultado");
+    function verResumen() {
+      let totalEuros = 0;
+      let diasTrabajados = 0;
 
-      if (!cupones || cupones <= 0 || dias <= 0 || dias > 26) {
-        resultado.textContent = "Introduce datos válidos.";
-        return;
-      }
+      const resumenHTML = [];
 
-      const minimo = dias * 142;
-      const umbral = dias * 210;
-      const totalVenta = cupones * precio;
-      let porcentaje = 0;
+      const dias = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
+      dias.forEach(dia => {
+        const data = JSON.parse(localStorage.getItem("ventas_" + dia));
+        if (data) {
+          diasTrabajados++;
+          const euros =
+            data.diario * 2 +
+            data.cuponazo * 3 +
+            data.sueldazo * 2 +
+            data.rascas +
+            data.activos;
 
-      if (producto === "extra") {
-        if (cupones >= 600) porcentaje = 17;
-        else if (cupones >= 500) porcentaje = 16;
-        else if (cupones >= 400) porcentaje = 15;
-        else if (cupones >= 300) porcentaje = 14;
-        else if (cupones >= 200) porcentaje = 13;
-        else if (cupones >= 1) porcentaje = 12;
-      } else {
-        if (producto === "diario") {
-          if (totalVenta >= umbral) porcentaje = 17.5;
-          else if (totalVenta >= minimo) porcentaje = 7;
-        } else if (producto === "cuponazo") {
-          if (totalVenta >= umbral) porcentaje = 15;
-          else if (totalVenta >= minimo) porcentaje = 6;
-        } else if (producto === "sueldazo") {
-          if (totalVenta >= umbral) porcentaje = 15;
-          else if (totalVenta >= minimo) porcentaje = 6;
-        } else if (producto === "rascas") {
-          if (totalVenta >= umbral) porcentaje = 10.5;
-          else if (totalVenta >= minimo) porcentaje = 4.5;
-        } else if (producto === "activos") {
-          if (totalVenta >= umbral) porcentaje = 10.5;
-          else if (totalVenta >= minimo) porcentaje = 4.5;
+          resumenHTML.push(`<strong>${dia.charAt(0).toUpperCase() + dia.slice(1)}</strong>: ${euros.toFixed(2)} €`);
+          totalEuros += euros;
         }
-      }
+      });
 
-      const ganancia = (totalVenta * porcentaje / 100).toFixed(2);
+      const objetivo = diasTrabajados * umbralPorDia;
+      const porcentaje = Math.min(((totalEuros / objetivo) * 100).toFixed(1), 100);
 
-      resultado.innerHTML = `
-        <p>🔢 Vendidos: <strong>${cupones}</strong> cupones × <strong>${precio.toFixed(2)} €</strong> = <strong>${totalVenta.toFixed(2)} €</strong></p>
-        <p>📅 Días: ${dias} → Mínimo: ${minimo.toFixed(2)} € | Umbral: ${umbral.toFixed(2)} €</p>
-        <p>📈 Comisión: <strong>${porcentaje}%</strong></p>
-        <p>💰 Ganancia estimada: <strong>${ganancia} €</strong></p>
+      const resumenDiv = document.getElementById("resumen");
+      resumenDiv.innerHTML = `
+        <h3>Resumen mensual</h3>
+        ${resumenHTML.join("<br>")}
+        <hr>
+        <strong>Total vendido:</strong> ${totalEuros.toFixed(2)} €<br>
+        <strong>Días trabajados:</strong> ${diasTrabajados}<br>
+        <strong>Objetivo mínimo:</strong> ${objetivo.toFixed(2)} €<br>
+        <strong>Progreso:</strong> ${porcentaje}%<br>
+        <strong>Comisión estimada:</strong> ${totalEuros >= objetivo ? (totalEuros * 0.077).toFixed(2) + " €" : "0 € (no alcanzado)"}<br>
       `;
     }
 
-    cargarOpciones();
+    function borrarDatos() {
+      if (confirm("¿Seguro que quieres borrar todos los datos del mes?")) {
+        const dias = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
+        dias.forEach(dia => localStorage.removeItem("ventas_" + dia));
+        document.getElementById("resumen").innerHTML = "";
+        alert("Datos borrados correctamente.");
+      }
+    }
   </script>
 </body>
 </html>
