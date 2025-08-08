@@ -2,60 +2,104 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Calculadora de Ventas ONCE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Comisiones ONCE</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
-      margin: 0;
-      padding: 2rem;
-      text-align: center;
+      background: #f5f5f5;
+      color: #333;
+      max-width: 500px;
+      margin: 2rem auto;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background-color: #fff;
     }
     h1 {
-      color: #004c99;
+      text-align: center;
+      color: #007700;
     }
-    input, button {
-      padding: 0.8rem;
-      font-size: 1.2rem;
-      margin: 1rem;
-      border: none;
-      border-radius: 8px;
-    }
-    input {
-      width: 80%;
-      max-width: 300px;
-    }
-    button {
-      background-color: #004c99;
-      color: white;
-      cursor: pointer;
+    select, input, button {
+      display: block;
+      width: 100%;
+      margin: 1rem 0;
+      padding: 0.5rem;
+      font-size: 1rem;
     }
     #resultado {
-      margin-top: 2rem;
-      font-size: 1.4rem;
       font-weight: bold;
+      text-align: center;
+      font-size: 1.2rem;
+      color: #007700;
     }
   </style>
 </head>
 <body>
-  <h1>Calculadora de Ventas ONCE</h1>
-  <label for="cupones">Cupones vendidos hoy:</label><br>
-  <input type="number" id="cupones" placeholder="Ej: 200"><br>
-  <button onclick="calcular()">Calcular beneficio</button>
+  <h1>Calculadora ONCE 2025</h1>
+  <label for="producto">Selecciona el producto vendido:</label>
+  <select id="producto">
+    <option value="diario">Cupón Diario</option>
+    <option value="cuponazo">Cuponazo (Viernes)</option>
+    <option value="sueldazo">Sueldazo (Fin de semana)</option>
+    <option value="rascas">Rascas</option>
+    <option value="extra">Extraordinario</option>
+  </select>
+
+  <label for="cantidad">¿Cuántos has vendido?</label>
+  <input type="number" id="cantidad" placeholder="Ej: 150">
+
+  <button onclick="calcularComision()">Calcular comisión</button>
+
   <div id="resultado"></div>
 
   <script>
-    function calcular() {
-      const cupones = parseInt(document.getElementById('cupones').value);
-      const beneficio = 0.18;
-      if (isNaN(cupones) || cupones <= 0) {
-        document.getElementById('resultado').textContent = "Introduce un número válido.";
-      } else {
-        const total = cupones * beneficio;
-        document.getElementById('resultado').textContent = 
-          `Has ganado hoy ${total.toFixed(2)} € en comisiones.`;
+    function calcularComision() {
+      const producto = document.getElementById('producto').value;
+      const cantidad = parseInt(document.getElementById('cantidad').value);
+      let comision = 0;
+
+      if (isNaN(cantidad) || cantidad <= 0) {
+        document.getElementById('resultado').textContent = "Introduce una cantidad válida.";
+        return;
       }
+
+      switch(producto) {
+        case 'diario':
+          if (cantidad < 150) comision = cantidad * 0.10;
+          else if (cantidad < 200) comision = cantidad * 0.13;
+          else if (cantidad < 300) comision = cantidad * 0.14;
+          else if (cantidad < 400) comision = cantidad * 0.15;
+          else if (cantidad < 500) comision = cantidad * 0.16;
+          else if (cantidad < 600) comision = cantidad * 0.17;
+          else comision = cantidad * 0.175;
+          break;
+        case 'cuponazo':
+          if (cantidad < 200) comision = cantidad * 0.125;
+          else if (cantidad < 400) comision = cantidad * 0.13;
+          else comision = cantidad * 0.14;
+          break;
+        case 'sueldazo':
+          if (cantidad < 200) comision = cantidad * 0.14;
+          else if (cantidad < 400) comision = cantidad * 0.155;
+          else comision = cantidad * 0.175;
+          break;
+        case 'rascas':
+          comision = cantidad * 0.10;
+          break;
+        case 'extra':
+          if (cantidad < 200) comision = cantidad * 0.12;
+          else if (cantidad < 300) comision = cantidad * 0.13;
+          else if (cantidad < 400) comision = cantidad * 0.14;
+          else if (cantidad < 500) comision = cantidad * 0.15;
+          else if (cantidad < 600) comision = cantidad * 0.16;
+          else comision = cantidad * 0.17;
+          break;
+        default:
+          comision = 0;
+      }
+
+      document.getElementById('resultado').textContent = `Has ganado: ${comision.toFixed(2)} €`;
     }
   </script>
 </body>
