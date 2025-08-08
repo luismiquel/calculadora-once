@@ -93,12 +93,12 @@
 
   <script>
     const comisiones = {
-      diario: { porcentaje: 0.18, minimo: 142, umbral: 210 },
-      cuponazo: { porcentaje: 0.19, minimo: 142, umbral: 210 },
-      sueldazo: { porcentaje: 0.20, minimo: 142, umbral: 210 },
-      rasca: { porcentaje: 0.14, minimo: 142, umbral: 210 },
-      resto: { porcentaje: 0.08, minimo: 142, umbral: 210 },
-      extraordinario: { porcentaje: 0.25, minimo: 142, umbral: 210 },
+      diario: { categoria: "Muy alto", porcentaje: 0.18, minimo: 142, umbral: 210 },
+      cuponazo: { categoria: "Muy alto", porcentaje: 0.19, minimo: 142, umbral: 210 },
+      sueldazo: { categoria: "Muy alto", porcentaje: 0.20, minimo: 142, umbral: 210 },
+      rasca: { categoria: "Alto", porcentaje: 0.14, minimo: 142, umbral: 210 },
+      resto: { categoria: "Resto", porcentaje: 0.08, minimo: 142, umbral: 210 },
+      extraordinario: { categoria: "Muy alto", porcentaje: 0.25, minimo: 142, umbral: 210 },
     };
 
     const memoria = {
@@ -131,8 +131,14 @@
       document.getElementById("resultado").innerHTML = `
         🔢 Vendidos: ${cantidad} cupones × ${precio.toFixed(2)} € = ${total.toFixed(2)} €<br>
         📅 Días: ${dias} → Mínimo: ${minimo.toFixed(2)} € | Umbral: ${umbral.toFixed(2)} €<br>
-        📈 Comisión: ${porcentaje * 100}%<br>
+        📊 Categoría: ${comisiones[tipo].categoria}<br>
+        📈 Comisión: ${(porcentaje * 100).toFixed(2)}%<br>
         💰 Ganancia estimada: ${comision.toFixed(2)} €`;
+
+      const diaActual = new Date().toLocaleDateString("es-ES", { weekday: "long" }).toLowerCase();
+      if (memoria.hasOwnProperty(diaActual)) {
+        memoria[diaActual] += cantidad;
+      }
     }
 
     function resumenSemanal() {
@@ -146,6 +152,7 @@
       document.getElementById("resumenMensual").innerHTML = `
         <h3>Resumen mensual</h3>
         <p>Total vendido en la semana: ${total} cupones</p>
+        <p>Estimación de ingresos si fueran diarios a 2€ con 18% comisión: ${(total * 2 * 0.18).toFixed(2)} €</p>
       `;
       container.innerHTML = html;
     }
