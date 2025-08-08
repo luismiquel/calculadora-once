@@ -13,14 +13,12 @@
       --secondary: #fcbf49;
       --accent: #003049;
     }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #1e1e1e;
-        --fg: #f0f0f0;
-        --primary: #ff595e;
-        --secondary: #ffca3a;
-        --accent: #8ac926;
-      }
+    [data-theme="dark"] {
+      --bg: #1e1e1e;
+      --fg: #f0f0f0;
+      --primary: #ff595e;
+      --secondary: #ffca3a;
+      --accent: #8ac926;
     }
     body {
       font-family: Arial, sans-serif;
@@ -67,10 +65,22 @@
       width: 100% !important;
       height: auto !important;
     }
+    #toggleTema {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+    }
   </style>
 </head>
 <body>
   <h1>Calculadora de Comisiones ONCE 2025</h1>
+  <button id="toggleTema" onclick="cambiarTema()">🌗 Cambiar tema</button>
+
+  <label for="voz">Dictar por voz:</label>
+  <button onclick="iniciarReconocimientoVoz()">🎙️ Decir datos</button>
 
   <label>Tipo de producto:</label>
   <select id="tipo" onchange="autocompletarPrecio()">
@@ -78,6 +88,10 @@
     <option value="cuponazo">Cuponazo</option>
     <option value="sueldazo">Sueldazo</option>
     <option value="rasca">Rasca</option>
+    <option value="triplex">Triplex</option>
+    <option value="superonce">Super Once</option>
+    <option value="midia">Mi Día</option>
+    <option value="eurojackpot">Eurojackpot</option>
     <option value="resto">Resto productos</option>
     <option value="extraordinario">Extraordinario</option>
   </select>
@@ -116,121 +130,58 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    const comisiones = {
-      diario: { categoria: "Muy alto", porcentaje: 0.18, minimo: 142, umbral: 210, precio: 2.00 },
-      cuponazo: { categoria: "Muy alto", porcentaje: 0.19, minimo: 142, umbral: 210, precio: 3.00 },
-      sueldazo: { categoria: "Muy alto", porcentaje: 0.20, minimo: 142, umbral: 210, precio: 2.00 },
-      rasca: { categoria: "Alto", porcentaje: 0.14, minimo: 142, umbral: 210, precio: 2.00 },
-      resto: { categoria: "Resto", porcentaje: 0.08, minimo: 142, umbral: 210, precio: 1.00 },
-      extraordinario: { categoria: "Muy alto", porcentaje: 0.25, minimo: 142, umbral: 210, precio: 2.00 },
-    };
+    const reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recogedor = reconocimiento ? new reconocimiento() : null;
 
-    const memoria = {};
+    function iniciarReconocimientoVoz() {
+      if (!recogedor) {
+        alert("Tu navegador no soporta reconocimiento de voz.");
+        return;
+      }
+      recogedor.lang = "es-ES";
+      recogedor.start();
+      recogedor.onresult = function(event) {
+        const texto = event.results[0][0].transcript.toLowerCase();
+        procesarComandoVoz(texto);
+      };
+    }
+
+    function procesarComandoVoz(texto) {
+      const partes = texto.match(/(\d+)\s*cupon(?:es)?\s*(?:vendido|vendidos)?\s*(?:de)?\s*(lunes|martes|miércoles|jueves|viernes|sábado|domingo)/);
+      if (partes) {
+        const cantidad = parseInt(partes[1]);
+        const dia = partes[2];
+        const hoy = new Date().toLocaleDateString("es-ES");
+        memoria[hoy] = (memoria[hoy] || 0) + cantidad;
+        actualizarHistorial();
+        actualizarGrafico();
+        alert(`🗣️ Registrado: ${cantidad} cupones vendidos el ${dia}`);
+      } else {
+        alert("No se pudo entender el comando. Usa frases como: '69 cupones vendidos de lunes'");
+      }
+    }
+
+    function cambiarTema() {
+      const html = document.documentElement;
+      html.dataset.theme = html.dataset.theme === "dark" ? "light" : "dark";
+    }
 
     function autocompletarPrecio() {
       const tipo = document.getElementById("tipo").value;
-      if (comisiones[tipo]) {
-        document.getElementById("precio").value = comisiones[tipo].precio.toFixed(2);
-      }
-    }
-
-    function calcularComision() {
-      const tipo = document.getElementById("tipo").value;
-      const dias = parseInt(document.getElementById("dias").value);
-      const cantidad = parseInt(document.getElementById("cantidad").value);
-      const precio = parseFloat(document.getElementById("precio").value);
-
-      const total = cantidad * precio;
-      const minimo = comisiones[tipo].minimo * dias;
-      const umbral = comisiones[tipo].umbral * dias;
-
-      let porcentaje = 0;
-      if (total >= umbral) {
-        porcentaje = comisiones[tipo].porcentaje;
-      }
-
-      const comision = total * porcentaje;
-      let alertaClase = "rojo";
-      if (total >= umbral) alertaClase = "verde";
-      else if (total >= minimo) alertaClase = "naranja";
-
-      const resultado = document.getElementById("resultado");
-      resultado.innerHTML = `
-        🔢 Vendidos: ${cantidad} cupones × ${precio.toFixed(2)} € = ${total.toFixed(2)} €<br>
-        📅 Días: ${dias} → Mínimo: ${minimo.toFixed(2)} € | Umbral: ${umbral.toFixed(2)} €<br>
-        📊 Categoría: ${comisiones[tipo].categoria}<br>
-        📈 Comisión: ${(porcentaje * 100).toFixed(2)}%<br>
-        💰 Ganancia estimada: ${comision.toFixed(2)} €<br>
-        <div class="alerta ${alertaClase}">
-          ${alertaClase === 'verde' ? '✅ Ya cobras comisión' : alertaClase === 'naranja' ? '⚠️ Aún no cobras comisión' : '❌ Por debajo del mínimo'}
-        </div>`;
-
-      const fecha = new Date().toLocaleDateString("es-ES");
-      memoria[fecha] = (memoria[fecha] || 0) + cantidad;
-      actualizarHistorial();
-      actualizarGrafico();
-      leerResultado(resultado.innerText);
-    }
-
-    function resumenSemanal() {
-      const container = document.getElementById("diasContainer");
-      let html = "";
-      for (const fecha in memoria) {
-        html += `<p><b>${fecha}:</b> ${memoria[fecha]} cupones</p>`;
-      }
-      container.innerHTML = html;
-    }
-
-    function descargarCSV() {
-      let csv = "Fecha,Cupones\n";
-      for (const fecha in memoria) {
-        csv += `${fecha},${memoria[fecha]}\n`;
-      }
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "ventas_mes.csv";
-      a.click();
-    }
-
-    function actualizarHistorial() {
-      const lista = document.getElementById("historial");
-      lista.innerHTML = "";
-      for (const fecha in memoria) {
-        const li = document.createElement("li");
-        li.textContent = `${fecha}: ${memoria[fecha]} cupones`;
-        lista.appendChild(li);
-      }
-    }
-
-    let grafico;
-    function actualizarGrafico() {
-      const ctx = document.getElementById('graficoVentas').getContext('2d');
-      if (grafico) grafico.destroy();
-      grafico = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(memoria),
-          datasets: [{
-            label: 'Cupones vendidos',
-            data: Object.values(memoria),
-            backgroundColor: '#fcbf49'
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            tooltip: { enabled: true }
-          }
-        }
-      });
-    }
-
-    function leerResultado(texto) {
-      const voz = new SpeechSynthesisUtterance(texto);
-      speechSynthesis.speak(voz);
+      const precioInput = document.getElementById("precio");
+      const precios = {
+        diario: 2,
+        cuponazo: 3,
+        sueldazo: 2,
+        rasca: 1,
+        triplex: 0.5,
+        superonce: 1,
+        midia: 1,
+        eurojackpot: 2,
+        extraordinario: 2.5,
+        resto: 1.5
+      };
+      precioInput.value = precios[tipo] || 2;
     }
   </script>
 </body>
