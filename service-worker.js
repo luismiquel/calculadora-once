@@ -1,9 +1,16 @@
 // service-worker.js
-const CACHE_NAME = "calc-once-v6";
-const ASSETS = ["./","./index.html","./manifest.json"];
+const CACHE_NAME = "calc-once-v8";
+const ASSETS = [
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./favicon.ico",
+  "./favicon.png"
+];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(ASSETS)));
+  self.skipWaiting();
 });
 
 self.addEventListener("activate", (e) => {
@@ -12,13 +19,19 @@ self.addEventListener("activate", (e) => {
       Promise.all(keys.map(k => (k !== CACHE_NAME ? caches.delete(k) : null)))
     )
   );
+  self.clients.claim();
 });
 
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
-  if (ASSETS.some(a => url.pathname.endsWith(a.replace("./","/")))) {
+  const isAsset = ASSETS.some(a => url.pathname.endsWith(a.replace("./","/")));
+  if (isAsset) {
+    // Cache-first para assets
     e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
   } else {
-    e.respondWith(fetch(e.request).catch(() => caches.match("./index.html")));
+    // Network-first con fallback a index
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match("./index.html"))
+    );
   }
 });
