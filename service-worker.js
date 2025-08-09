@@ -1,11 +1,9 @@
 // service-worker.js
-const CACHE_NAME = "calc-once-v8";
+const CACHE_NAME = "calc-once-v10";
 const ASSETS = [
   "./",
   "./index.html",
-  "./manifest.json",
-  "./favicon.ico",
-  "./favicon.png"
+  "./manifest.json"
 ];
 
 self.addEventListener("install", (e) => {
@@ -29,7 +27,7 @@ self.addEventListener("fetch", (e) => {
     // Cache-first para assets
     e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
   } else {
-    // Network-first con fallback a index
+    // Network-first con fallback a index (modo SPA)
     e.respondWith(
       fetch(e.request).catch(() => caches.match("./index.html"))
     );
