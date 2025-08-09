@@ -1,5 +1,5 @@
 // service-worker.js
-const CACHE_NAME = "calc-once-v10";
+const CACHE_NAME = "calc-once-v11";
 const ASSETS = [
   "./",
   "./index.html",
