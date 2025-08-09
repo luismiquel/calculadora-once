@@ -2,67 +2,43 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Calculadora de Comisiones ONCE 2025</title>
+  <meta name="theme-color" content="#0f172a">
 
   <!-- PWA -->
-  <meta name="theme-color" content="#0ea5e9">
-  <link rel="manifest" href="manifest.json" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="icon" type="image/png" href="https://placehold.co/192x192/0ea5e9/00121a?text=ONCE" sizes="192x192">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="https://placehold.co/192x192/0f172a/ffffff?text=ONCE" sizes="192x192">
 
   <style>
-    :root {
-      --bg: #ffffff;
-      --fg: #0f172a;
-      --primary: #0ea5e9;
-      --secondary: #e2f0fb;
-      --accent: #0b1220;
-      --card: #f8fafc;
+    :root{
+      --bg:#ffffff; --fg:#0f172a; --card:#f1f5f9; --brand:#0ea5e9; --accent:#22c55e;
+      --btn:#0ea5e9; --btn-fg:#ffffff; --warn:#f59e0b; --danger:#ef4444; --muted:#64748b;
     }
-    [data-theme="dark"] {
-      --bg: #0b1220;
-      --fg: #e6edf6;
-      --primary: #38bdf8;
-      --secondary: #162334;
-      --accent: #e6edf6;
-      --card: #0f172a;
+    [data-theme="dark"]{
+      --bg:#0b1220; --fg:#e5e7eb; --card:#111827; --brand:#38bdf8; --accent:#22c55e;
+      --btn:#38bdf8; --btn-fg:#0b1220; --warn:#fbbf24; --danger:#f87171; --muted:#94a3b8;
     }
-    * { box-sizing: border-box; }
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: var(--bg); color: var(--fg); margin: 0; padding: 16px;
-      line-height: 1.35;
-    }
-    h1 { margin: 0 0 12px; color: var(--primary); font-size: 1.35rem; }
-    .row { display: grid; gap: 10px; margin: 12px 0; }
-    @media (min-width: 520px) {.row-2 { grid-template-columns: 1fr 1fr; }}
-    label { display: grid; gap: 6px; font-size: .95rem; }
-    select, input[type=number], button {
-      width: 100%; padding: 10px 12px; font-size: 1rem; border-radius: 10px;
-      border: 1px solid #cbd5e1; background: var(--card); color: var(--fg);
-      outline: none;
-    }
-    button {
-      cursor: pointer; border: none; background: var(--primary); color: #00121a;
-      font-weight: 700;
-    }
-    .btn-secondary {
-      background: var(--accent); color: var(--bg); border: 1px solid #334155;
-    }
-    .wrap {
-      background: var(--card); border: 1px solid #1f2937; border-radius: 14px; padding: 12px;
-    }
-    .resultado, .alerta {
-      margin-top: 12px; border-radius: 10px; padding: 10px 12px;
-      background: var(--secondary); color: var(--fg);
-    }
-    .verde { background: #c7f7d5; color: #065f46; }
-    .naranja { background: #fff1c2; color: #7c5b00; }
-    .rojo { background: #ffd6d9; color: #7f1d1d; }
-    .toolbar { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
-    @media (min-width: 560px){ .toolbar{ grid-template-columns: auto auto auto; width: fit-content; gap:8px } }
+    *{box-sizing:border-box}
+    body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font-family:system-ui,Arial,sans-serif}
+    h1{margin:0 0 12px;font-size:1.4rem;color:var(--brand)}
+    .card{background:var(--card);border-radius:12px;padding:12px}
+    label{display:block;margin:10px 0 6px;font-size:.92rem;color:var(--muted)}
+    select,input{width:100%;padding:10px;font-size:1rem;border-radius:10px;border:1px solid #0001;background:#fff0}
+    .row{display:grid;gap:10px}
+    @media(min-width:700px){.row{grid-template-columns:repeat(2,1fr)}}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
+    button{padding:10px 12px;border:0;border-radius:10px;cursor:pointer;font-weight:600}
+    .btn{background:var(--btn);color:var(--btn-fg)}
+    .btn-secondary{background:#00000012;color:var(--fg)}
+    .resultado{margin-top:12px}
+    .alerta{margin-top:8px;padding:10px;border-radius:8px;font-weight:600}
+    .verde{background:#16a34a22;color:#16a34a}
+    .naranja{background:#f59e0b22;color:#b45309}
+    .rojo{background:#ef444422;color:#b91c1c}
+    .muted{color:var(--muted);font-size:.9rem}
+    .small{font-size:.9rem}
+    .footer{margin-top:16px;color:var(--muted);font-size:.85rem;text-align:center}
   </style>
 </head>
 <body>
@@ -70,14 +46,14 @@
 
   <div class="toolbar">
     <button class="btn-secondary" id="toggleTema" onclick="cambiarTema()">🌗 Tema</button>
-    <button class="btn-secondary" id="btnVoz" onclick="toggleVoz()">🎙️ Dictar ventas</button>
-    <button onclick="calcularComision()">🔢 Calcular</button>
+    <button class="btn" id="btnCalcular" onclick="calcularComision()">🔢 Calcular</button>
   </div>
 
-  <div class="wrap">
-    <div class="row row-2">
-      <label>Tipo de producto
-        <select id="tipo" onchange="autocompletarPrecio()">
+  <div class="card">
+    <div class="row">
+      <div>
+        <label>Tipo de producto</label>
+        <select id="tipo" onchange="autocompletarPrecioYPorcentaje()">
           <option value="diario">Diario</option>
           <option value="cuponazo">Cuponazo</option>
           <option value="sueldazo">Sueldazo</option>
@@ -89,182 +65,176 @@
           <option value="extraordinario">Extraordinario</option>
           <option value="resto">Otros</option>
         </select>
-      </label>
+      </div>
 
-      <label>Días trabajados (1–26)
-        <input id="dias" type="number" value="20" min="1" max="26" inputmode="numeric">
-      </label>
+      <div>
+        <label>Días trabajados (1–26)</label>
+        <input id="dias" type="number" min="1" max="26" value="20" />
+      </div>
+
+      <div>
+        <label>Unidades vendidas</label>
+        <input id="vendidos" type="number" min="0" value="0" />
+      </div>
+
+      <div>
+        <label>Precio por unidad (€)</label>
+        <input id="precio" type="number" step="0.1" value="2" />
+      </div>
+
+      <div>
+        <label>Porcentaje de comisión (%) <span class="muted">(editable)</span></label>
+        <input id="porc" type="number" step="0.1" min="0" value="7.7" />
+      </div>
     </div>
 
-    <div class="row row-2">
-      <label>Cupones vendidos
-        <input id="vendidos" type="number" value="0" min="0" inputmode="numeric">
-      </label>
-
-      <label>Precio por cupón (€)
-        <input id="precio" type="number" value="2" step="0.1" inputmode="decimal">
-      </label>
+    <div class="resultado" id="resultado"></div>
+    <div class="small muted">Notas:
+      <ul>
+        <li><b>Mínimo</b> = 142 €/día &nbsp;|&nbsp; <b>Umbral</b> = 210 €/día.</li>
+        <li><b>Extraordinarios</b>: comisión por tramos (12–17%) <b>sin umbral</b>.</li>
+        <li>El % es editable para ajustar a cambios oficiales.</li>
+      </ul>
     </div>
-
-    <div class="resultado" id="resultado">Introduce datos y pulsa “Calcular”.</div>
   </div>
 
+  <div class="footer">PWA offline. Si algo no se actualiza, recarga con caché vacía.</div>
+
   <script>
-    // --- Datos base ---
+    // ======= Datos por producto =======
     const precios = {
       diario: 2, cuponazo: 3, sueldazo: 2, rasca: 1,
       triplex: 0.5, superonce: 1, midia: 1, eurojackpot: 2,
       extraordinario: 2.5, resto: 1.5
     };
-    const porcentajes = {
-      diario: 0.077, cuponazo: 0.077, sueldazo: 0.077,
-      rasca: 0.065, triplex: 0.05, superonce: 0.05,
-      midia: 0.05, eurojackpot: 0.05, extraordinario: 0.10, resto: 0.04
+
+    // Porcentaje sugerido por producto (editable en UI)
+    const porcentajeSugerido = {
+      diario: 7.7, cuponazo: 7.7, sueldazo: 7.7,
+      rasca: 6.5, triplex: 5, superonce: 5,
+      midia: 5, eurojackpot: 5, extraordinario: 12, resto: 4
     };
 
-    // --- UI helpers ---
-    function autocompletarPrecio() {
+    // Tramos Extraordinarios (por número de cupones)
+    function tramoExtra(vendidos){
+      if (vendidos >= 600) return 17;
+      if (vendidos >= 500) return 16;
+      if (vendidos >= 400) return 15;
+      if (vendidos >= 300) return 14;
+      if (vendidos >= 200) return 13;
+      if (vendidos >=   1) return 12;
+      return 0;
+    }
+
+    function autocompletarPrecioYPorcentaje(){
       const tipo = document.getElementById("tipo").value;
       document.getElementById("precio").value = precios[tipo];
+      if (tipo === "extraordinario") {
+        // Para extraordinarios, el % real lo determina el tramo -> dejamos el campo como referencia
+        document.getElementById("porc").value = 12;
+      } else {
+        document.getElementById("porc").value = porcentajeSugerido[tipo];
+      }
     }
-    function cambiarTema() {
-      const html = document.documentElement;
-      html.dataset.theme = html.dataset.theme === "dark" ? "light" : "dark";
-      localStorage.setItem("tema", html.dataset.theme || "light");
-    }
-    // restaurar tema
-    (function(){
-      const tema = localStorage.getItem("tema") || "light";
-      if (tema === "dark") document.documentElement.dataset.theme = "dark";
-    })();
 
-    // --- Cálculo simple (a falta de tabla 2025 exacta por jornadas) ---
-    function calcularComision() {
-      const tipo = document.getElementById("tipo").value;
-      const dias = Math.max(1, Math.min(26, parseInt(document.getElementById("dias").value || "0")));
-      const vendidos = Math.max(0, parseInt(document.getElementById("vendidos").value || "0"));
-      const precio = Math.max(0, parseFloat(document.getElementById("precio").value || "0"));
+    function calcularMinimoUmbral(dias){
+      // Tabla 2025: patrón lineal por día (observado en documento):
+      // mínimo = 142 €/día, umbral = 210 €/día
+      const minimo = 142 * dias;
+      const umbral = 210 * dias;
+      return { minimo, umbral };
+    }
+
+    function formatoEuros(n){
+      return n.toLocaleString("es-ES",{style:"currency",currency:"EUR"});
+    }
+
+    function calcularComision(){
+      const btn = document.getElementById("btnCalcular");
+      if (btn) btn.disabled = true; // evita doble clic muy rápido
+
+      const tipo     = document.getElementById("tipo").value;
+      const dias     = Math.max(1, Math.min(26, parseInt(document.getElementById("dias").value || "0", 10)));
+      const vendidos = Math.max(0, parseInt(document.getElementById("vendidos").value || "0", 10));
+      const precio   = Math.max(0, parseFloat(document.getElementById("precio").value || "0"));
+      let porc       = Math.max(0, parseFloat(document.getElementById("porc").value || "0"));
 
       const total = vendidos * precio;
-      // Aprox: mínimo 71€ por jornada y umbral 105€ por jornada por cada producto (ajustaremos con la tabla oficial en la siguiente versión)
-      const minimo = dias * 71;
-      const umbral = dias * 105;
+      const { minimo, umbral } = calcularMinimoUmbral(dias);
 
-      // Extraordinarios por tramos (según cupones)
-      let porcentaje = porcentajes[tipo];
-      if (tipo === "extraordinario") {
-        if (vendidos >= 600) porcentaje = 0.17;
-        else if (vendidos >= 500) porcentaje = 0.16;
-        else if (vendidos >= 400) porcentaje = 0.15;
-        else if (vendidos >= 300) porcentaje = 0.14;
-        else if (vendidos >= 200) porcentaje = 0.13;
-        else porcentaje = 0.12;
-      }
-
-      let comision = 0;
-      if (total >= umbral) comision = total * porcentaje;
-
-      const color = total >= umbral ? "verde" : total >= minimo ? "naranja" : "rojo";
-      const msgEstado = total >= umbral
-        ? "✅ Superado el umbral (con comisión)"
-        : total >= minimo
-          ? "⚠️ Superado mínimo (sin comisión)"
-          : "❌ No alcanzado el mínimo";
-
-      document.getElementById("resultado").innerHTML = `
-        <div>🧾 <b>${vendidos}</b> × ${precio.toFixed(2)} € = <b>${total.toFixed(2)} €</b></div>
-        <div>📅 Días: <b>${dias}</b> → Mínimo: <b>${minimo.toFixed(2)} €</b> | Umbral: <b>${umbral.toFixed(2)} €</b></div>
-        <div>📈 Comisión: <b>${(porcentaje * 100).toFixed(2)}%</b></div>
-        <div>💰 Ganancia estimada: <b>${comision.toFixed(2)} €</b></div>
-        <div class="alerta ${color}">${msgEstado}</div>
-      `;
-    }
-
-    // --- Dictado por voz robusto (toggle iniciar/parar) ---
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let sr = null;
-    let escuchando = false;
-
-    // Oculta botón si no hay soporte
-    if (!SR) { document.getElementById("btnVoz").style.display = "none"; }
-    else {
-      sr = new SR();
-      sr.lang = "es-ES";
-      sr.continuous = false;
-      sr.interimResults = false;
-      sr.maxAlternatives = 1;
-
-      sr.onstart = () => {
-        escuchando = true;
-        const b = document.getElementById("btnVoz");
-        b.textContent = "🛑 Parar dictado";
-        b.disabled = false;
-      };
-      sr.onend = () => {
-        escuchando = false;
-        const b = document.getElementById("btnVoz");
-        b.textContent = "🎙️ Dictar ventas";
-        b.disabled = false;
-      };
-      sr.onerror = (e) => {
-        try { sr.abort(); } catch {}
-        escuchando = false;
-        const b = document.getElementById("btnVoz");
-        b.textContent = "🎙️ Dictar ventas";
-        b.disabled = false;
-        console.warn("SR error:", e && e.error);
-      };
-      sr.onresult = (e) => {
-        const texto = (e.results?.[0]?.[0]?.transcript || "").toLowerCase();
-        const qty = (texto.match(/(\d{1,4})/) || [])[1];
-        const tipoDetectado =
-          /cuponazo|cuponazos/.test(texto) ? "cuponazo" :
-          /sueldazo|sueldazos/.test(texto) ? "sueldazo" :
-          /diario|diarios/.test(texto) ? "diario" :
-          /rasca|rascas/.test(texto) ? "rasca" :
-          /tr[ií]plex|triplex/.test(texto) ? "triplex" :
-          /super\s*once/.test(texto) ? "superonce" :
-          /mi\s*d[ií]a/.test(texto) ? "midia" :
-          /euro\s*jackpot|eurojackpot/.test(texto) ? "eurojackpot" :
-          /extraordinario|extraordinarios/.test(texto) ? "extraordinario" :
-          null;
-
-        if (qty) document.getElementById("vendidos").value = qty;
-        if (tipoDetectado) {
-          document.getElementById("tipo").value = tipoDetectado;
-          autocompletarPrecio();
-        }
-      };
-    }
-
-    function toggleVoz() {
-      const b = document.getElementById("btnVoz");
-      if (!sr) { alert("Tu navegador no soporta dictado por voz."); return; }
-      b.disabled = true;
-      if (escuchando) {
-        try { sr.stop(); } catch {}
+      let comision = 0, detalle = "", alertaClase = "rojo", estadoTexto = "❌ No alcanzado el mínimo";
+      if (tipo === "extraordinario"){
+        // Extraordinario: por tramos, sin umbral
+        const tramo = tramoExtra(vendidos);
+        porc = tramo; // % final
+        comision = total * (porc/100);
+        detalle = `🧾 Extraordinario: ${vendidos} cupones → tramo ${porc}% (sin umbral).`;
+        // Pintamos semáforo informativo según tramo
+        if (porc >= 15) { alertaClase = "verde"; estadoTexto = "✅ Buen tramo de comisión"; }
+        else if (porc >= 12) { alertaClase = "naranja"; estadoTexto = "ℹ️ Tramo inicial de comisión"; }
+        else { alertaClase = "rojo"; estadoTexto = "—"; }
       } else {
-        try {
-          sr.start();
-        } catch (e) {
-          if (e.name === "InvalidStateError") {
-            try { sr.abort(); } catch {}
-            setTimeout(() => { try { sr.start(); } catch {} }, 250);
-          } else {
-            console.warn(e);
-          }
-        } finally {
-          setTimeout(() => { b.disabled = false; }, 300);
+        // Resto: solo hay comisión si se supera el UMBRAL
+        if (total >= umbral){
+          comision = total * (porc/100);
+          alertaClase = "verde"; estadoTexto = "✅ Superado el umbral";
+        } else if (total >= minimo){
+          comision = 0;
+          alertaClase = "naranja"; estadoTexto = "⚠️ Sobre el mínimo, pero sin comisión";
+        } else {
+          comision = 0;
+          alertaClase = "rojo"; estadoTexto = "❌ No alcanzado el mínimo";
         }
+        detalle = `📏 Regla: comisión solo si total ≥ umbral (${formatoEuros(umbral)}).`;
       }
+
+      const html = `
+        <div>
+          <div>🛒 <b>${vendidos}</b> × ${formatoEuros(precio)} = <b>${formatoEuros(total)}</b></div>
+          <div>📅 Días: <b>${dias}</b> &nbsp;→&nbsp; Mínimo: <b>${formatoEuros(minimo)}</b> · Umbral: <b>${formatoEuros(umbral)}</b></div>
+          <div>📈 % comisión aplicado: <b>${porc.toFixed(1)}%</b></div>
+          <div>💰 Ganancia estimada: <b>${formatoEuros(comision)}</b></div>
+          <div class="alerta ${alertaClase}">${estadoTexto}</div>
+          <div class="muted small">${detalle}</div>
+        </div>
+      `;
+      document.getElementById("resultado").innerHTML = html;
+
+      if (btn) setTimeout(()=>btn.disabled=false, 200);
     }
 
-    // --- PWA: registrar SW ---
+    // ==== Tema persistente ====
+    (function initTema(){
+      const saved = localStorage.getItem("calc-once-theme");
+      if (saved) document.documentElement.dataset.theme = saved;
+    })();
+
+    function cambiarTema(){
+      const html = document.documentElement;
+      const next = html.dataset.theme === "dark" ? "light" : "dark";
+      html.dataset.theme = next;
+      localStorage.setItem("calc-once-theme", next);
+    }
+
+    // ==== PWA: registro seguro del SW (evita error si 404) ====
     if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js").catch(console.warn);
+      window.addEventListener("load", async () => {
+        try {
+          const resp = await fetch("./service-worker.js", { cache: "no-store" });
+          if (resp.ok) {
+            await navigator.serviceWorker.register("./service-worker.js");
+            console.log("Service Worker registrado.");
+          } else {
+            console.warn("SW no encontrado (404). Registro omitido.");
+          }
+        } catch (e) {
+          console.warn("No se pudo registrar el SW:", e);
+        }
       });
     }
+
+    // Autocompletar al abrir
+    autocompletarPrecioYPorcentaje();
   </script>
 </body>
 </html>
