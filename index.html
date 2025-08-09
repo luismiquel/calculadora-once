@@ -116,6 +116,11 @@
       document.documentElement.dataset.theme =
         document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     }
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js").then(() => {
+        console.log("SW registrado");
+      }).catch(err => console.error("Error SW:", err));
+    }
   </script>
 </body>
 </html>
