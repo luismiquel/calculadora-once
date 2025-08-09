@@ -1,20 +1,19 @@
 {
   "name": "Calculadora de Comisiones ONCE 2025",
   "short_name": "Calc ONCE",
-  "description": "Calculadora de ventas y comisiones con mínimo/umbral y productos activos.",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0b1220",
-  "theme_color": "#0ea5e9",
+  "theme_color": "#0f172a",
   "icons": [
     {
-      "src": "https://placehold.co/192x192/0ea5e9/00121a?text=ONCE",
+      "src": "https://placehold.co/192x192/0f172a/ffffff?text=ONCE",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://placehold.co/512x512/0ea5e9/00121a?text=ONCE",
+      "src": "https://placehold.co/512x512/0f172a/ffffff?text=ONCE",
       "sizes": "512x512",
       "type": "image/png"
     }
