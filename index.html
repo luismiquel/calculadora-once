@@ -37,7 +37,7 @@
       margin: 0.5rem 0;
       font-size: 1rem;
     }
-    .resultado, .semana, .resumen-mensual, .historial-ventas, .grafico-container {
+    .resultado {
       margin-top: 1rem;
       background: var(--secondary);
       color: var(--accent);
@@ -53,10 +53,6 @@
     .verde { background: #d4edda; color: #155724; }
     .naranja { background: #fff3cd; color: #856404; }
     .rojo { background: #f8d7da; color: #721c24; }
-    canvas {
-      width: 100% !important;
-      height: auto !important;
-    }
     #toggleTema {
       background: var(--accent);
       color: var(--bg);
@@ -132,7 +128,7 @@
       document.getElementById("resultado").innerHTML = `
         🔢 Vendidos: ${vendidos} cupones × ${precio.toFixed(2)} € = ${total.toFixed(2)} €<br>
         📅 Días: ${dias} → Mínimo: ${minimo.toFixed(2)} € | Umbral: ${umbral.toFixed(2)} €<br>
-        📈 Comisión: ${porcentajes[tipo]*100}%<br>
+        📈 Comisión: ${(porcentajes[tipo]*100).toFixed(2)}%<br>
         💰 Ganancia estimada: ${comision.toFixed(2)} €<br>
         <div class="alerta ${alerta}">${total >= umbral ? '✅ Superado el umbral' : total >= minimo ? '⚠️ Superado el mínimo, sin comisión' : '❌ No alcanzado el mínimo'}</div>
       `;
