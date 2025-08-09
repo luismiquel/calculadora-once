@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#d62828" />
   <link rel="manifest" href="./manifest.json" />
 
-  <!-- Favicon: SVG embebido (evita 404). Además sube favicon.png (ver manifest). -->
+  <!-- Favicon embebido (evita 404). Puedes subir también favicon.png para el manifest -->
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23d62828"/><text x="50" y="62" font-size="54" text-anchor="middle" fill="white" font-family="Arial, sans-serif">O</text></svg>' type="image/svg+xml">
 
   <style>
@@ -18,8 +18,8 @@
     *{box-sizing:border-box}
     body { font-family: system-ui, Arial, sans-serif; background: var(--bg); color: var(--fg); margin:0; }
     header { padding:1rem; background:var(--primary); color:#fff; display:flex; gap:.5rem; align-items:center; justify-content:space-between; flex-wrap:wrap; }
-    header h1{font-size:1.1rem; margin:0}
-    .wrap{ padding:1rem; max-width:900px; margin:0 auto; }
+    header h1{font-size:1.05rem; margin:0}
+    .wrap{ padding:1rem; max-width:980px; margin:0 auto; }
     .card{ background:var(--secondary); color:var(--accent); border-radius:12px; padding:1rem; }
     label{display:block; font-weight:600; margin-top:.5rem}
     select, input[type=number], input[type=date], input[type=month], button { width:100%; padding:.7rem; margin-top:.3rem; font-size:1rem; border-radius:10px; border:1px solid #0001; }
@@ -68,11 +68,11 @@
           </select>
         </div>
         <div>
-          <label>Días trabajados (1–26)</label>
-          <input id="dias" type="number" value="20" min="1" max="26" />
+          <label>Días trabajados (1–25)</label>
+          <input id="dias" type="number" value="20" min="1" max="25" />
         </div>
         <div>
-          <label>Precio por cupón (€)</label>
+          <label>Precio por unidad (€)</label>
           <input id="precio" type="number" value="2" step="0.1" />
         </div>
       </div>
@@ -114,22 +114,22 @@
   </div>
 
   <script>
-    // --- Datos base ---
-    const preciosPorDefecto = {
-      diario: 2, cuponazo: 3, sueldazo: 2,
-      rasca: 1, triplex: 0.5, superonce: 1,
-      midia: 1, eurojackpot: 2, extraordinario: 2.5, resto: 1.5
+    // =========================
+    //  DATOS OFICIALES 2025
+    // =========================
+    // Familias y porcentajes por ESCALA (8 tramos; columna 1 ya es el UMBRAL)
+    // MUY ALTO:   [1.5, 4.0, 7.0, 8.5, 9.0, 9.5, 10.0, 10.5]
+    // ALTO:       [2.0, 5.0, 8.5, 11.5, 12.0, 12.5, 13.0, 14.0]
+    // RESTO:      [2.5, 6.0, 10.0, 13.0, 14.0, 15.0, 16.0, 17.5]
+
+    const PERCENTS = {
+      muyAlto:  [1.5, 4.0, 7.0, 8.5, 9.0, 9.5, 10.0, 10.5],
+      alto:     [2.0, 5.0, 8.5, 11.5, 12.0, 12.5, 13.0, 14.0],
+      resto:    [2.5, 6.0, 10.0, 13.0, 14.0, 15.0, 16.0, 17.5]
     };
 
-    // Porcentaje por familia (aprox)
-    const porcentajePorFamilia = {
-      muyAlto: 0.105,  // 10,5%
-      alto:    0.14,   // 14%
-      resto:   0.10    // 10%
-    };
-
-    // Familia por tipo
-    const familiaTipo = {
+    // Familia por tipo de producto
+    const FAMILIA = {
       diario: 'resto',
       cuponazo: 'resto',
       sueldazo: 'resto',
@@ -138,18 +138,63 @@
       superonce: 'resto',
       midia: 'resto',
       eurojackpot: 'resto',
-      extraordinario: 'alto',
+      extraordinario: 'alto', // Extraordinarios tienen su tabla especial (se ignoran escalas)
       resto: 'resto'
     };
 
-    // Regla accesible (genérica): mínimo/umbral por días y precio
-    function minUmbral(dias, precio) {
-      const minimo = dias * precio * 71;
-      const umbral  = dias * precio * 105;
-      return { minimo, umbral };
+    // Precios por defecto
+    const PRECIO_DEF = {
+      diario: 2, cuponazo: 3, sueldazo: 2,
+      rasca: 1, triplex: 0.5, superonce: 1,
+      midia: 1, eurojackpot: 2, extraordinario: 2.5, resto: 1.5
+    };
+
+    // Tabla accesible 2025 (por jornadas). Cada fila:
+    // { dias, umbral, minimo, escalas[8] } (escalas = [umbral, tramo2, ..., tramo8] en €)
+    // Fuente: tabla accesible 2025 (valores en euros).
+    const TABLA = [
+      {d:1,  u:210,  m:142,  e:[210,289,344,400,455,510,566,677]},
+      {d:2,  u:420,  m:284,  e:[420,578,688,800,910,1020,1132,1354]},
+      {d:3,  u:630,  m:426,  e:[630,867,1032,1200,1365,1530,1698,2031]},
+      {d:4,  u:840,  m:568,  e:[840,1156,1376,1600,1820,2040,2264,2708]},
+      {d:5,  u:1050, m:710,  e:[1050,1445,1720,2000,2275,2550,2830,3385]},
+      {d:6,  u:1260, m:852,  e:[1260,1734,2064,2400,2730,3060,3396,4062]},
+      {d:7,  u:1470, m:994,  e:[1470,2023,2408,2800,3185,3570,3962,4739]},
+      {d:8,  u:1680, m:1136, e:[1680,2312,2752,3200,3640,4080,4528,5416]},
+      {d:9,  u:1890, m:1278, e:[1890,2601,3096,3600,4095,4590,5094,6093]},
+      {d:10, u:2100, m:1420, e:[2100,2890,3440,4000,4550,5100,5660,6770]},
+      {d:11, u:2310, m:1562, e:[2310,3179,3784,4400,5005,5610,6226,7447]},
+      {d:12, u:2520, m:1704, e:[2520,3468,4128,4800,5460,6120,6792,8124]},
+      {d:13, u:2730, m:1846, e:[2730,3757,4472,5200,5915,6630,7358,8801]},
+      {d:14, u:2940, m:1988, e:[2940,4046,4816,5600,6370,7140,7924,9478]},
+      {d:15, u:3150, m:2130, e:[3150,4335,5160,6000,6825,7650,8490,10155]},
+      {d:16, u:3360, m:2272, e:[3360,4624,5504,6400,7280,8160,9056,10832]},
+      {d:17, u:3570, m:2414, e:[3570,4913,5848,6800,7735,8670,9622,11509]},
+      {d:18, u:3780, m:2556, e:[3780,5202,6192,7200,8190,9180,10188,12186]},
+      {d:19, u:3990, m:2698, e:[3990,5491,6536,7600,8645,9690,10754,12863]},
+      {d:20, u:4200, m:2840, e:[4200,5780,6880,8000,9100,10200,11320,13540]},
+      {d:21, u:4410, m:2982, e:[4410,6069,7224,8400,9555,10710,11886,14217]},
+      {d:22, u:4620, m:3124, e:[4620,6358,7568,8800,10010,11220,12452,14894]},
+      {d:23, u:4830, m:3266, e:[4830,6647,7912,9200,10465,11730,13018,15571]},
+      {d:24, u:5040, m:3408, e:[5040,6936,8256,9600,10920,12240,13584,16248]},
+      {d:25, u:5250, m:3550, e:[5250,7225,8600,10000,11375,12750,14150,16925]},
+    ];
+
+    // Tabla extraordinarios: comisión por UNIDADES (no por €)
+    // 1–199:12% | 200–299:13% | 300–399:14% | 400–499:15% | 500–599:16% | 600+:17%
+    function percentExtraordinario(unidades){
+      if (unidades >= 600) return 17;
+      if (unidades >= 500) return 16;
+      if (unidades >= 400) return 15;
+      if (unidades >= 300) return 14;
+      if (unidades >= 200) return 13;
+      if (unidades >= 1)   return 12;
+      return 0;
     }
 
-    // --- UI refs ---
+    // =========================
+    //   LÓGICA DE CÁLCULO
+    // =========================
     const tipoEl = document.getElementById('tipo');
     const diasEl = document.getElementById('dias');
     const precioEl = document.getElementById('precio');
@@ -162,47 +207,84 @@
     const btnResumen = document.getElementById('btnResumen');
     const resumenEl = document.getElementById('resumen');
 
-    // Autoprecio al cambiar tipo
+    // Autoprecio según tipo
     tipoEl.addEventListener('change', () => {
-      precioEl.value = preciosPorDefecto[tipoEl.value] ?? 1.5;
+      precioEl.value = PRECIO_DEF[tipoEl.value] ?? 1.5;
     });
+
+    // Buscar fila de días (1..25). Si te pasas, usa 25.
+    function filaDias(d){
+      const x = Math.max(1, Math.min(25, Math.floor(d||0)));
+      return TABLA.find(r => r.d === x);
+    }
+
+    // Hallar % por familia y euros vendidos usando escalas
+    function percentPorEscala(familia, eurosVendidos, fila){
+      // Si no llega a UMBRAL, 0% (aunque pase MÍNIMO)
+      if (eurosVendidos < fila.u) return 0;
+
+      // Encuentra el índice máximo cuyo tramo <= eurosVendidos
+      let idx = 0;
+      for (let i=0; i<fila.e.length; i++){
+        if (eurosVendidos >= fila.e[i]) idx = i;
+      }
+      const lista = PERCENTS[familia] || PERCENTS.resto;
+      return lista[idx]; // % correspondiente al tramo
+    }
 
     // Calcular
     document.getElementById('btnCalcular').addEventListener('click', () => {
       const tipo = tipoEl.value;
       const dias = +diasEl.value || 0;
-      const vendidos = +vendidosEl.value || 0;
-      const precio = +precioEl.value || preciosPorDefecto[tipo] || 1.5;
+      const unidades = +vendidosEl.value || 0;
+      const precio = +precioEl.value || PRECIO_DEF[tipo] || 1.5;
 
-      const total = vendidos * precio;
-      const { minimo, umbral } = minUmbral(dias, precio);
+      const euros = unidades * precio;
 
-      // Comisión solo si supera umbral
-      const pct = porcentajePorFamilia[familiaTipo[tipo]] || porcentajePorFamilia.resto;
-      const comision = total >= umbral ? total * pct : 0;
+      // Extraordinario: por unidades
+      if (tipo === 'extraordinario'){
+        const pct = percentExtraordinario(unidades);
+        const comision = euros * (pct/100);
+        resEl.innerHTML = `
+          <div><b>Tipo:</b> ${tipo} (extraordinario por unidades)</div>
+          <div>🔢 Unidades: <b>${unidades}</b> × ${precio.toFixed(2)} € = <b>${euros.toFixed(2)} €</b></div>
+          <div>📈 Tramo extraordinario: <b>${pct}%</b></div>
+          <div>💰 Comisión estimada: <b>${comision.toFixed(2)} €</b></div>
+          <div class="alerta ${pct>0?'verde':'rojo'}">${pct>0?'✅ Con comisión según tramo':'❌ Sin ventas'}</div>
+        `;
+        return;
+      }
 
-      const alertaClase = total >= umbral ? 'verde' : (total >= minimo ? 'naranja' : 'rojo');
-      const alertaTexto  = total >= umbral ? '✅ Superado UMBRAL (cobra comisión)'
-                         : total >= minimo ? '⚠️ Superado MÍNIMO (sin comisión)'
+      // Resto de productos: por escalas (euros) y familia
+      const fila = filaDias(dias);
+      const familia = FAMILIA[tipo] || 'resto';
+      const pct = percentPorEscala(familia, euros, fila);
+      const comision = euros * (pct/100);
+
+      const alertaClase = euros >= fila.u ? 'verde' : (euros >= fila.m ? 'naranja' : 'rojo');
+      const alertaTexto  = euros >= fila.u ? '✅ Superado UMBRAL (cobra comisión por tramo)'
+                         : euros >= fila.m ? '⚠️ Superado MÍNIMO (sin comisión)'
                          : '❌ Por debajo del mínimo';
 
       resEl.innerHTML = `
-        <div><b>Tipo:</b> ${tipo} | <b>Familia:</b> ${familiaTipo[tipo]}</div>
-        <div>🔢 Vendidos: <b>${vendidos}</b> × ${precio.toFixed(2)} € = <b>${total.toFixed(2)} €</b></div>
-        <div>📅 Días: <b>${dias}</b> → Mínimo: <b>${minimo.toFixed(2)} €</b> | Umbral: <b>${umbral.toFixed(2)} €</b></div>
-        <div>📈 % comisión (si supera umbral): <b>${(pct*100).toFixed(1)}%</b></div>
-        <div>💰 Ganancia estimada: <b>${comision.toFixed(2)} €</b></div>
+        <div><b>Tipo:</b> ${tipo} | <b>Familia:</b> ${familia}</div>
+        <div>🔢 Vendido: <b>${unidades}</b> × ${precio.toFixed(2)} € = <b>${euros.toFixed(2)} €</b></div>
+        <div>📅 Días: <b>${fila.d}</b> → Mínimo: <b>${fila.m.toFixed(2)} €</b> | Umbral: <b>${fila.u.toFixed(2)} €</b></div>
+        <div>📊 Escalas (€): ${fila.e.map(v=>v.toFixed(0)).join(' → ')}</div>
+        <div>📈 % comisión (según escala alcanzada): <b>${pct.toFixed(1)}%</b></div>
+        <div>💰 Comisión estimada: <b>${comision.toFixed(2)} €</b></div>
         <div class="alerta ${alertaClase}">${alertaTexto}</div>
       `;
     });
 
-    // Tema
+    // =========================
+    //   TEMA, MEMORIA, RESUMEN
+    // =========================
     document.getElementById('btnTema').addEventListener('click', () => {
       const html = document.documentElement;
       html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
       localStorage.setItem('theme', html.dataset.theme || 'light');
     });
-    // Restaurar tema
     (function(){
       const t = localStorage.getItem('theme') || 'light';
       if (t === 'dark') document.documentElement.dataset.theme = 'dark';
@@ -217,7 +299,7 @@
         tipo: tipoEl.value,
         dias: +diasEl.value || 0,
         vendidos: +vendidosEl.value || 0,
-        precio: +precioEl.value || preciosPorDefecto[tipoEl.value] || 1.5
+        precio: +precioEl.value || PRECIO_DEF[tipoEl.value] || 1.5
       };
       registro[f] = data;
       localStorage.setItem('ventasONCE', JSON.stringify(registro));
@@ -246,7 +328,9 @@
       `;
     });
 
-    // --- PWA: instalación + SW ---
+    // =========================
+    //        PWA (SW)
+    // =========================
     let deferredPrompt = null;
     const btnInstalar = document.getElementById('btnInstalar');
 
