@@ -1,337 +1,141 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calculadora ONCE 2025</title>
-
-  <!-- PWA -->
+  <meta name="theme-color" content="#0ea5e9">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0ea5e9"/>
-
-  <!-- Evita 404 del favicon usando un data URL -->
-  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="%230ea5e9"/><text x="50%" y="57%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="64" fill="white">O</text></svg>'>
-
   <style>
-    :root{
-      --bg:#ffffff; --fg:#0f172a; --card:#f1f5f9; --accent:#0ea5e9;
-      --ok-bg:#dcfce7; --ok-fg:#14532d; --warn-bg:#fff7ed; --warn-fg:#7c2d12; --bad-bg:#fee2e2; --bad-fg:#7f1d1d;
-      --border:#0001;
+    :root {
+      --bg: #ffffff;
+      --fg: #000000;
+      --primary: #0ea5e9;
+      --secondary: #e0f2fe;
+      --accent: #0284c7;
     }
-    @media (prefers-color-scheme: dark) {
-      :root{
-        --bg:#0b1220; --fg:#e5e7eb; --card:#0f172a; --accent:#38bdf8;
-        --border:#ffffff22;
-      }
+    [data-theme="dark"] {
+      --bg: #0b1220;
+      --fg: #f0f0f0;
+      --primary: #38bdf8;
+      --secondary: #1e293b;
+      --accent: #7dd3fc;
     }
-    [data-theme="dark"]{
-      --bg:#0b1220; --fg:#e5e7eb; --card:#0f172a; --accent:#38bdf8; --border:#ffffff22;
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      margin: 0;
+      padding: 1rem;
     }
-    [data-theme="light"]{
-      --bg:#ffffff; --fg:#0f172a; --card:#f1f5f9; --accent:#0ea5e9; --border:#0001;
+    h1 {
+      text-align: center;
+      color: var(--primary);
     }
-
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:var(--bg);color:var(--fg)}
-    .wrap{max-width:900px;margin:0 auto;padding:1rem}
-    h1{margin:.5rem 0}
-    .row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
-    .spacer{flex:1}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin:.75rem 0}
-    .grid{display:grid;gap:.75rem}
-    @media(min-width:720px){.grid-2{grid-template-columns:1fr 1fr}}
-    label{font-weight:600}
-    input,select,button{width:100%;padding:.65rem;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--fg)}
-    button{background:var(--accent);color:#fff;font-weight:700;cursor:pointer;border:none}
-    .btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
-    .small{font-size:.85rem}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:.5rem;border-bottom:1px dashed var(--border)}
-    td.right,th.right{text-align:right}
-    .muted{color:#94a3b8;font-size:.9rem}
-    .kpi{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
-    .pill{background:transparent;border:1px solid var(--border);border-radius:999px;padding:.25rem .6rem}
-    .alert{padding:.6rem;border-radius:10px;margin-top:.5rem}
-    .ok{background:var(--ok-bg);color:var(--ok-fg)}
-    .warn{background:var(--warn-bg);color:var(--warn-fg)}
-    .bad{background:var(--bad-bg);color:var(--bad-fg)}
-    a.btn-ghost{text-decoration:none;display:inline-block}
+    select, input, button {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      font-size: 1rem;
+    }
+    button {
+      background: var(--primary);
+      color: var(--bg);
+      border: none;
+      cursor: pointer;
+    }
+    .resultado {
+      background: var(--secondary);
+      color: var(--accent);
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="row">
-      <h1>Calculadora de Comisiones ONCE 2025</h1>
-      <div class="spacer"></div>
-      <button id="tema" class="btn-ghost small" title="Tema oscuro/claro">🌗 Tema</button>
-      <a class="btn-ghost small" href="#" id="instalar" title="Instalar app">⬇️ Instalar</a>
-    </div>
-    <p class="muted">Añade tus ventas diarias. Calcula jornadas (fechas únicas), mínimo/umbral y comisiones (estándar y extraordinarios).</p>
+  <h1>Calculadora ONCE 2025</h1>
+  <button onclick="cambiarTema()">🌗 Cambiar tema</button>
+  <label>Tipo de producto:
+    <select id="tipo" onchange="autocompletarPrecio()">
+      <option value="diario">Diario</option>
+      <option value="cuponazo">Cuponazo</option>
+      <option value="sueldazo">Sueldazo</option>
+      <option value="rasca">Rasca</option>
+      <option value="triplex">Triplex</option>
+      <option value="superonce">Super Once</option>
+      <option value="midia">Mi Día</option>
+      <option value="eurojackpot">Eurojackpot</option>
+      <option value="extraordinario">Extraordinario</option>
+      <option value="resto">Otros</option>
+    </select>
+  </label>
+  <label>Cupones vendidos hoy:
+    <input id="vendidos" type="number" min="0" value="0">
+  </label>
+  <label>Precio por cupón (€):
+    <input id="precio" type="number" step="0.1" value="2">
+  </label>
+  <button onclick="sumarDia()">➕ Añadir día</button>
+  <button onclick="calcularComision()">💰 Calcular comisión total</button>
 
-    <!-- Entrada -->
-    <section class="card">
-      <div class="grid grid-2">
-        <div>
-          <label for="fecha">Fecha</label>
-          <input id="fecha" type="date">
-        </div>
-        <div>
-          <label for="tipo">Producto</label>
-          <select id="tipo">
-            <option value="diario">Diario (2€)</option>
-            <option value="cuponazo">Cuponazo (3€)</option>
-            <option value="sueldazo">Sueldazo (2€)</option>
-            <option value="rasca">Rasca (1–10€)</option>
-            <option value="triplex">Triplex (0,50€)</option>
-            <option value="superonce">Super Once (1€)</option>
-            <option value="midia">Mi Día (1€)</option>
-            <option value="eurojackpot">Eurojackpot (2€)</option>
-            <option value="extraordinario">Extraordinario</option>
-            <option value="resto">Otros</option>
-          </select>
-        </div>
-        <div>
-          <label for="unidades">Unidades</label>
-          <input id="unidades" type="number" min="0" value="0">
-        </div>
-        <div>
-          <label for="precio">Precio (€)</label>
-          <input id="precio" type="number" min="0" step="0.1" value="2">
-        </div>
-      </div>
-      <div class="grid" style="margin-top:.5rem">
-        <button id="add">➕ Añadir venta</button>
-      </div>
-      <p class="muted small">El precio se autocompleta según el producto, pero puedes cambiarlo.</p>
-    </section>
-
-    <!-- Historial -->
-    <section class="card">
-      <div class="row" style="justify-content:space-between">
-        <h2 style="margin:.25rem 0">Historial</h2>
-        <div class="row">
-          <button id="csv" class="btn-ghost">⬇️ CSV</button>
-          <button id="clear" class="btn-ghost">🗑️ Vaciar</button>
-        </div>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Fecha</th><th>Producto</th><th class="right">Unid.</th><th class="right">Precio</th><th class="right">Importe</th><th></th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-        <tfoot>
-          <tr><td colspan="4" class="right"><b>Total</b></td><td class="right" id="total">0,00 €</td><td></td></tr>
-        </tfoot>
-      </table>
-    </section>
-
-    <!-- Resumen -->
-    <section class="card" id="resumen">
-      <h2 style="margin:.25rem 0">Resumen automático</h2>
-      <div id="kpis" class="kpi"></div>
-      <div id="estado"></div>
-      <div id="tablaResumen"></div>
-    </section>
-  </div>
+  <div class="resultado" id="resultado"></div>
 
 <script>
-/* ===== Config ===== */
-const PRECIOS = {
-  diario:2, cuponazo:3, sueldazo:2, rasca:1,
-  triplex:0.5, superonce:1, midia:1, eurojackpot:2, extraordinario:2.5, resto:1.5
-};
-// Comisión estándar (si total >= umbral)
-const PORC = {
-  diario:0.105, cuponazo:0.105, sueldazo:0.105,
-  rasca:0.065, triplex:0.05, superonce:0.05, midia:0.05, eurojackpot:0.05, resto:0.06
-};
-// Tabla MÍNIMO/UMBRAL por jornadas (1..26)
-const TABLA = [
-  [0,0],
-  [142,210],[284,420],[426,630],[568,840],[710,1050],[852,1260],[994,1470],[1136,1680],[1278,1890],
-  [1420,2100],[1562,2310],[1704,2520],[1846,2730],[1988,2940],[2130,3150],[2272,3360],[2414,3570],
-  [2556,3780],[2698,3990],[2840,4200],[2982,4410],[3124,4620],[3266,4830],[3408,5040],[3550,5250],[3692,5460]
-];
-// Extraordinarios por tramos (unidades)
-function comisionExtraordinario(unidades, precio){
-  const tramos = [
-    {min:600, pct:0.17},{min:500, pct:0.16},{min:400, pct:0.15},
-    {min:300, pct:0.14},{min:200, pct:0.13},{min:1, pct:0.12}
-  ];
-  let pct = 0; for(const t of tramos){ if(unidades>=t.min){ pct=t.pct; break; } }
-  const total = unidades * precio;
-  return {pct,total,comision: total*pct};
-}
+  const precios = {
+    diario: 2, cuponazo: 3, sueldazo: 2, rasca: 1,
+    triplex: 0.5, superonce: 1, midia: 1, eurojackpot: 2,
+    extraordinario: 2.5, resto: 1.5
+  };
+  const porcentajes = {
+    diario: 0.077, cuponazo: 0.077, sueldazo: 0.077,
+    rasca: 0.065, triplex: 0.05, superonce: 0.05,
+    midia: 0.05, eurojackpot: 0.05, extraordinario: 0.10, resto: 0.04
+  };
 
-/* ===== Utils ===== */
-const $ = s=>document.querySelector(s);
-const fmt = n=>(Number(n)||0).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
-const fmtInt = n=>(Number(n)||0).toLocaleString('es-ES');
-const todayISO = ()=> new Date().toISOString().slice(0,10);
+  let ventasTotales = 0;
+  let diasTrabajados = 0;
 
-/* ===== DOM ===== */
-const fecha = $('#fecha'), tipo = $('#tipo'), unidades = $('#unidades'), precio = $('#precio');
-const addBtn = $('#add'), tbody = $('#tbody'), totalTd = $('#total');
-const csvBtn = $('#csv'), clearBtn = $('#clear');
-const kpis = $('#kpis'), estado = $('#estado'), tablaResumen = $('#tablaResumen');
-const btnTema = $('#tema'); const btnInstalar = $('#instalar');
+  function autocompletarPrecio() {
+    const tipo = document.getElementById("tipo").value;
+    document.getElementById("precio").value = precios[tipo];
+  }
 
-/* ===== Estado ===== */
-const KEY='once_hist_v3';
-function load(){ try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]} }
-function save(x){ localStorage.setItem(KEY, JSON.stringify(x)); }
+  function sumarDia() {
+    const vendidos = parseInt(document.getElementById("vendidos").value);
+    const precio = parseFloat(document.getElementById("precio").value);
+    ventasTotales += vendidos * precio;
+    diasTrabajados++;
+    document.getElementById("vendidos").value = 0;
+    document.getElementById("resultado").innerHTML = 
+      `📅 Días: ${diasTrabajados} | 💵 Total acumulado: ${ventasTotales.toFixed(2)} €`;
+  }
 
-/* ===== Tema oscuro/claro ===== */
-(function initTema(){
-  const t = localStorage.getItem('theme');
-  if(t==='dark' || t==='light'){ document.documentElement.dataset.theme=t; }
-})();
-btnTema.addEventListener('click', ()=>{
-  const root = document.documentElement;
-  const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-  root.dataset.theme = next; localStorage.setItem('theme', next);
-});
+  function calcularComision() {
+    const tipo = document.getElementById("tipo").value;
+    const precio = parseFloat(document.getElementById("precio").value);
+    const minimo = diasTrabajados * precio * 71;
+    const umbral = diasTrabajados * precio * 105;
+    let comision = 0;
+    if (ventasTotales >= umbral) comision = ventasTotales * porcentajes[tipo];
 
-/* ===== Init ===== */
-fecha.value = todayISO();
-tipo.addEventListener('change', ()=>{ if(PRECIOS[tipo.value]!=null) precio.value = PRECIOS[tipo.value]; });
-if(PRECIOS[tipo.value]!=null) precio.value = PRECIOS[tipo.value];
-
-/* ===== Render ===== */
-function render(){
-  const arr = load();
-  tbody.innerHTML=''; let total=0;
-  arr.forEach((r,i)=>{
-    const imp = r.unidades*r.precio; total+=imp;
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${r.fecha}</td>
-      <td>${r.tipo}</td>
-      <td class="right">${fmtInt(r.unidades)}</td>
-      <td class="right">${fmt(r.precio)}</td>
-      <td class="right">${fmt(imp)}</td>
-      <td class="right"><button class="btn-ghost small" data-del="${i}">Borrar</button></td>
+    document.getElementById("resultado").innerHTML = `
+      📅 Días: ${diasTrabajados} | Total ventas: ${ventasTotales.toFixed(2)} €<br>
+      Mínimo: ${minimo.toFixed(2)} € | Umbral: ${umbral.toFixed(2)} €<br>
+      Comisión (${(porcentajes[tipo]*100).toFixed(1)}%): ${comision.toFixed(2)} €
     `;
-    tbody.appendChild(tr);
-  });
-  totalTd.textContent = fmt(total);
-  resumen(arr);
-}
-render();
-
-/* borrar línea */
-tbody.addEventListener('click', (e)=>{
-  const b = e.target.closest('button[data-del]'); if(!b) return;
-  const i = +b.dataset.del; const arr = load(); arr.splice(i,1); save(arr); render();
-});
-
-/* añadir venta */
-addBtn.addEventListener('click', ()=>{
-  const f = fecha.value || todayISO();
-  const t = tipo.value;
-  const u = Math.max(0, parseInt(unidades.value||'0',10));
-  const p = Math.max(0, parseFloat(precio.value||'0'));
-  if(!u || !p){ alert('Introduce unidades y precio'); return; }
-  const arr = load(); arr.push({fecha:f,tipo:t,unidades:u,precio:p}); save(arr); render();
-  unidades.value='0';
-});
-
-/* exportar / limpiar */
-csvBtn.addEventListener('click', ()=>{
-  const arr = load(); if(!arr.length){ alert('No hay datos'); return; }
-  const head='fecha,tipo,unidades,precio,importe\n';
-  const rows=arr.map(r=>`${r.fecha},${r.tipo},${r.unidades},${r.precio},${(r.unidades*r.precio).toFixed(2)}`).join('\n');
-  const blob=new Blob([head+rows],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob); const a=document.createElement('a');
-  a.href=url; a.download='ventas_once.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-});
-clearBtn.addEventListener('click', ()=>{
-  if(confirm('¿Borrar todo el historial de este dispositivo?')){
-    localStorage.removeItem(KEY); render();
-  }
-});
-
-/* ===== Resumen ===== */
-function resumen(arr){
-  if(!arr.length){
-    kpis.innerHTML=''; estado.innerHTML='<div class="alert warn">Sin datos.</div>'; tablaResumen.innerHTML=''; return;
-  }
-  const jornadas = Array.from(new Set(arr.map(r=>r.fecha))).length;
-  const [minimo, umbral] = TABLA[Math.max(1, Math.min(26, jornadas))] || [0,0];
-
-  const totProd = {}; let totalMes=0;
-  arr.forEach(r=>{
-    const imp=r.unidades*r.precio; totalMes+=imp;
-    totProd[r.tipo]=(totProd[r.tipo]||0)+imp;
-  });
-
-  let comiStd=0;
-  if(totalMes>=umbral){
-    for(const [t,imp] of Object.entries(totProd)){
-      if(t==='extraordinario') continue;
-      comiStd += imp * (PORC[t]||0);
-    }
   }
 
-  const ex = arr.filter(r=>r.tipo==='extraordinario');
-  const udsEx = ex.reduce((s,r)=>s+r.unidades,0);
-  const precioEx = ex.length ? ex[0].precio : PRECIOS.extraordinario;
-  const ce = comisionExtraordinario(udsEx, precioEx);
+  function cambiarTema() {
+    const html = document.documentElement;
+    html.dataset.theme = html.dataset.theme === "dark" ? "light" : "dark";
+  }
 
-  let cls='bad', msg='❌ No alcanzas el mínimo';
-  if(totalMes>=umbral){ cls='ok'; msg='✅ Umbral alcanzado: aplica comisión estándar'; }
-  else if(totalMes>=minimo){ cls='warn'; msg='⚠️ Mínimo alcanzado: sin comisión estándar aún'; }
-
-  kpis.innerHTML = `
-    <span class="pill">Jornadas: <b>${jornadas}</b></span>
-    <span class="pill">Mínimo: <b>${fmt(minimo)}</b></span>
-    <span class="pill">Umbral: <b>${fmt(umbral)}</b></span>
-    <span class="pill">Total: <b>${fmt(totalMes)}</b></span>
-  `;
-  estado.innerHTML = `<div class="alert ${cls}">${msg}</div>`;
-
-  const filas = Object.entries(totProd).sort((a,b)=>b[1]-a[1]).map(([t,imp])=>{
-    let pct=0, comi=0;
-    if(t==='extraordinario'){ pct = ce.pct*100; comi = ce.comision; }
-    else if(totalMes>=umbral){ pct=(PORC[t]||0)*100; comi = imp*(PORC[t]||0); }
-    return `<tr><td>${t}</td><td class="right">${fmt(imp)}</td><td class="right">${pct.toFixed(1)}%</td><td class="right">${fmt(comi)}</td></tr>`;
-  }).join('');
-
-  tablaResumen.innerHTML = `
-    <table>
-      <thead><tr><th>Producto</th><th class="right">Importe</th><th class="right">% aplicado</th><th class="right">Comisión</th></tr></thead>
-      <tbody>${filas || '<tr><td colspan="4" class="muted">Sin ventas</td></tr>'}</tbody>
-      <tfoot>
-        <tr><td>Total comisión estándar</td><td></td><td></td><td class="right">${fmt(comiStd)}</td></tr>
-        <tr><td>Extraordinarios</td><td class="right">${fmt(ce.total)}</td><td class="right">${(ce.pct*100).toFixed(0)}%</td><td class="right">${fmt(ce.comision)}</td></tr>
-        <tr><td colspan="3" class="right"><b>Comisión total</b></td><td class="right"><b>${fmt(comiStd+ce.comision)}</b></td></tr>
-      </tfoot>
-    </table>
-  `;
-}
-
-/* ===== PWA: instalación y SW ===== */
-let _deferredPrompt=null;
-window.addEventListener('beforeinstallprompt', (e)=>{
-  e.preventDefault(); _deferredPrompt = e; // guardamos el evento
-  document.getElementById('instalar').style.display='inline-block';
-});
-document.getElementById('instalar').addEventListener('click', async (e)=>{
-  e.preventDefault();
-  if(!_deferredPrompt) { alert('Si no aparece, ya está instalada o tu navegador no lo permite.'); return; }
-  _deferredPrompt.prompt();
-  await _deferredPrompt.userChoice;
-  _deferredPrompt=null;
-});
-
-if('serviceWorker' in navigator){
-  window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('./service-worker.js')
-      .catch(()=>console.log('SW no registrado'));
-  });
-}
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js")
+      .then(() => console.log("SW registrado"))
+      .catch(err => console.log("SW error", err));
+  }
 </script>
 </body>
 </html>
