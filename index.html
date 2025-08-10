@@ -1,569 +1,506 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Calculadora de Comisiones ONCE 2025</title>
-<meta name="theme-color" content="#0f766e" />
-<link rel="manifest" href="./manifest.json" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calculadora ONCE 2025</title>
+<meta name="theme-color" content="#0d9488">
+<link rel="manifest" href="./manifest.json">
 <style>
   :root{
-    --bg:#ffffff;--fg:#111827;--card:#f1f5f9;--muted:#6b7280;
-    --primary:#0f766e;--primary-fg:#ffffff;--warn:#f59e0b;--danger:#dc2626;--ok:#16a34a;
-    --ring:#0ea5e9;--border:#e5e7eb;
+    --bg:#0b1220;--fg:#e5e7eb;--card:#0f172a;--muted:#94a3b8;--primary:#0d9488;--warn:#f59e0b;--danger:#ef4444;--ok:#22c55e;--border:#24304a;
   }
-  [data-theme="dark"]{
-    --bg:#0b1220;--fg:#e5e7eb;--card:#0f172a;--muted:#9ca3af;
-    --primary:#14b8a6;--primary-fg:#062925;--warn:#fbbf24;--danger:#ef4444;--ok:#22c55e;
-    --ring:#38bdf8;--border:#1f2937;
+  [data-theme="light"]{
+    --bg:#f7fafc;--fg:#0b1220;--card:#ffffff;--muted:#475569;--primary:#0ea5e9;--warn:#b45309;--danger:#b91c1c;--ok:#16a34a;--border:#e2e8f0;
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial}
-  header{display:flex;gap:.75rem;align-items:center;justify-content:space-between;padding:1rem;position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--border);z-index:3}
-  h1{font-size:1.15rem;margin:0;color:var(--primary)}
-  .wrap{max-width:980px;margin:0 auto;padding:1rem;display:grid;gap:1rem}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem}
-  .row{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem}
-  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
-  .row2{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
-  .row>*{min-width:0}
-  label{display:flex;flex-direction:column;gap:.35rem;font-size:.92rem}
-  input,select,button,textarea{
-    font:inherit;padding:.65rem .7rem;border-radius:10px;border:1px solid var(--border);background:#fff;color:#111;
-  }
-  [data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{
-    background:#0b1220;color:var(--fg);border-color:#1f2937;
-  }
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--fg)}
+  header{display:flex;gap:.75rem;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+  h1{font-size:1.05rem;margin:0}
+  .row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
+  .muted{color:var(--muted);font-size:.9rem}
+  select,input[type="number"],input[type="month"],button{background:#0b1324;color:var(--fg);border:1px solid var(--border);border-radius:10px;padding:.6rem .7rem}
+  [data-theme="light"] select,[data-theme="light"] input,[data-theme="light"] button{background:#fff;color:var(--fg)}
   button{cursor:pointer}
-  .btn{background:var(--primary);color:white;border:none}
-  .btn:active{transform:scale(.99)}
-  .btn-secondary{background:transparent;border:1px solid var(--primary);color:var(--primary)}
-  .pill{display:inline-block;padding:.25rem .55rem;border-radius:999px;font-size:.78rem;border:1px solid var(--border);color:var(--muted);background:#fff}
-  [data-theme="dark"] .pill{background:#0b1220}
-  table{width:100%;border-collapse:collapse;font-size:.92rem}
-  th,td{padding:.55rem;border-bottom:1px solid var(--border);text-align:right}
-  th:first-child,td:first-child{text-align:left}
+  .btn{border:1px solid var(--border)}
+  .btn-primary{background:var(--primary);border-color:transparent}
+  .btn-ghost{background:transparent}
+  .grid{display:grid;gap:12px}
+  .days{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+  .day{padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--card)}
+  .day header{position:static;border:none;padding:0;margin-bottom:8px}
+  .tag{font-size:.75rem;padding:.15rem .5rem;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+  .pill{font-size:.8rem;padding:.2rem .55rem;border-radius:999px}
+  .ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+  .warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+  .danger{background:color-mix(in srgb,var(--danger) 18%,transparent);color:var(--danger)}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:6px;border-bottom:1px dashed var(--border);font-size:.92rem}
   tfoot td{font-weight:600}
-  .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--danger)}
-  .muted{color:var(--muted)}
-  .flex{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
-  .right{margin-left:auto}
-  .progress{height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden}
-  .bar{height:100%;background:linear-gradient(90deg,var(--primary),#22c55e)}
-  .sticky-actions{display:flex;gap:.5rem;flex-wrap:wrap}
-  .note{font-size:.85rem;color:var(--muted)}
-  .badge{border-radius:8px;padding:.2rem .5rem}
-  .badge.ok{background:rgba(22,163,74,.12)}
-  .badge.warn{background:rgba(245,158,11,.12)}
-  .badge.bad{background:rgba(220,38,38,.12)}
-  @media (max-width:760px){
-    .row{grid-template-columns:1fr 1fr}
-    .row3{grid-template-columns:1fr}
-    .row2{grid-template-columns:1fr}
-    header{flex-wrap:wrap;gap:.5rem}
-  }
+  .right{text-align:right}
+  .family{font-size:.78rem;color:var(--muted)}
+  .section-title{font-size:.95rem;margin:6px 0 8px;color:var(--muted)}
+  .foot{padding:10px 14px}
+  .hint{font-size:.8rem;color:var(--muted)}
 </style>
 </head>
 <body>
 <header>
-  <h1>Calculadora de Comisiones ONCE 2025</h1>
-  <div class="sticky-actions">
-    <button id="btn-theme" class="btn-secondary">🌗 Modo oscuro</button>
-    <button id="btn-export" class="btn-secondary">⬇️ Exportar CSV</button>
+  <h1>Calculadora ONCE 2025</h1>
+  <div class="row">
+    <input id="mes" type="month">
+    <button id="autoMes" class="btn">Autorrellenar mes</button>
+    <button id="csv" class="btn">Exportar CSV</button>
+    <button id="tema" class="btn-ghost">🌗 Tema</button>
   </div>
 </header>
 
-<main class="wrap">
-
-  <!-- ALTA DE VENTAS (día a día) -->
+<main class="grid" style="padding:12px">
   <section class="card">
-    <h2 style="margin-top:0">➕ Añadir venta (día a día)</h2>
-    <div class="row">
-      <label>Fecha
-        <input type="date" id="fecha">
-      </label>
-      <label>Tipo de producto
-        <select id="tipo">
-          <optgroup label="Muy alto porcentaje">
-            <option value="diario">Diario (2€)</option>
-            <option value="cuponazo">Cuponazo (3€)</option>
-            <option value="sueldazo">Sueldazo (2€)</option>
-            <option value="extraordinario">Extraordinario (tramos)</option>
-          </optgroup>
-          <optgroup label="Alto porcentaje">
-            <option value="eurojackpot">Eurojackpot (2€)</option>
-          </optgroup>
-          <optgroup label="Resto de productos">
-            <option value="triplex">Triplex (0,50€)</option>
-            <option value="superonce">Super Once (1€)</option>
-            <option value="midia">Mi Día (1€)</option>
-            <option value="rasca1">Rasca 1€ (LIBRO=100€)</option>
-            <option value="rasca2">Rasca 2€ (LIBRO=100€)</option>
-            <option value="rasca3">Rasca 3€ (LIBRO=150€)</option>
-            <option value="rasca5">Rasca 5€ (LIBRO=150€)</option>
-            <option value="rasca10">Rasca 10€ (LIBRO=150€)</option>
-          </optgroup>
-        </select>
-      </label>
-      <label>Unidades (cupones o libros de rasca)
-        <input type="number" id="unidades" value="0" min="0" step="1">
-      </label>
-      <label>Precio unitario (€)
-        <input type="number" id="precio" value="2" step="0.01" min="0">
-      </label>
-    </div>
-    <div class="row2">
-      <label>Observaciones
-        <input type="text" id="obs" placeholder="Opcional (ej: mañana mercado)">
-      </label>
-      <div class="flex" style="align-items:end;justify-content:flex-end">
-        <button id="btn-add" class="btn">💾 Guardar venta</button>
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <div class="section-title">Resumen mensual</div>
+        <div class="muted">Se recalcula al editar cualquier día</div>
+      </div>
+      <div class="row">
+        <span id="jornadas" class="tag">0 jornadas</span>
+        <span id="estadoMin" class="pill warn">Mínimo 0,00 €</span>
+        <span id="estadoUmb" class="pill danger">Umbral 0,00 €</span>
       </div>
     </div>
-    <div class="note">Para **rascas**, las unidades son **libros** (se usa el valor del libro indicado).</div>
-  </section>
-
-  <!-- CONTROLES DE MES -->
-  <section class="card">
-    <div class="flex">
-      <h2 style="margin:0">📅 Resumen mensual</h2>
-      <div class="right flex">
-        <label>Mes
-          <input type="month" id="mes" />
-        </label>
-        <button id="btn-clear-mes" class="btn-secondary">🧹 Borrar mes</button>
-        <button id="btn-clear-all" class="btn-secondary">🗑️ Borrar todo</button>
+    <div class="row" style="margin-top:8px;gap:18px;flex-wrap:wrap">
+      <div class="card" style="flex:1;min-width:220px">
+        <div class="muted">Total vendido</div>
+        <div id="totalVendido" style="font-size:1.3rem;font-weight:700">0,00 €</div>
       </div>
-    </div>
-
-    <div class="row3" style="margin-top:.75rem">
-      <div class="card" style="background:#fff">
-        <div class="flex">
-          <div>
-            <div class="muted">Jornadas trabajadas</div>
-            <div id="jornadas" style="font-size:1.4rem;font-weight:700">0</div>
-          </div>
-          <div style="margin-left:auto;text-align:right">
-            <div class="muted">Mínimo</div>
-            <div id="minimo" style="font-weight:700">0,00 €</div>
-            <div class="muted">Umbral</div>
-            <div id="umbral" style="font-weight:700">0,00 €</div>
-          </div>
-        </div>
-        <div class="progress" style="margin-top:.5rem">
-          <div id="bar-min" class="bar" style="width:0%"></div>
-        </div>
-        <div class="note" id="texto-progreso">0,00 € vendidos de 0,00 € (mínimo)</div>
+      <div class="card" style="flex:1;min-width:220px">
+        <div class="muted">Comisión estimada</div>
+        <div id="comision" style="font-size:1.3rem;font-weight:700">0,00 €</div>
+        <div class="hint">Solo si superas <b>umbral</b></div>
       </div>
-
-      <div class="card" style="background:#fff">
-        <div class="muted">Total vendido mes</div>
-        <div id="total-mes" style="font-size:1.6rem;font-weight:800">0,00 €</div>
-        <div id="estado-mes" class="badge warn" style="margin-top:.4rem">Sin comisión (no alcanzado umbral)</div>
+      <div class="card" style="flex:1;min-width:280px">
+        <div class="muted">Por familias</div>
+        <div id="familias"></div>
       </div>
-
-      <div class="card" style="background:#fff">
-        <div class="muted">Comisión estimada mes</div>
-        <div id="comision-mes" style="font-size:1.6rem;font-weight:800">0,00 €</div>
-        <div class="note">Si no llegas al **umbral**, la comisión se queda en 0 €.</div>
-      </div>
-    </div>
-
-    <details style="margin-top:.5rem">
-      <summary><strong>📊 Desglose por producto</strong></summary>
-      <div class="card" style="margin-top:.5rem">
-        <div class="note">Las % por familia se configuran en el script (puedes ajustarlas).</div>
-        <div class="table-wrap" style="overflow:auto">
-          <table id="tabla-productos">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th class="muted">Familia</th>
-                <th>Unid.</th>
-                <th>Precio</th>
-                <th>Vendido (€)</th>
-                <th>%</th>
-                <th>Comisión (€)</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-            <tfoot>
-              <tr>
-                <td colspan="4">TOTAL</td>
-                <td id="t-vendido">0,00 €</td>
-                <td id="t-porc">—</td>
-                <td id="t-comi">0,00 €</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-    </details>
-
-    <details style="margin-top:.5rem">
-      <summary><strong>🗒️ Ventas del mes (detalle día a día)</strong></summary>
-      <div class="table-wrap card" style="margin-top:.5rem;overflow:auto;background:#fff">
-        <table id="tabla-mes">
-          <thead>
-            <tr>
-              <th>Fecha</th><th>Producto</th><th>Unid.</th><th>Precio</th><th>Importe</th><th>Notas</th><th></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-          <tfoot>
-            <tr><td colspan="4">TOTAL MES</td><td id="total-mes-tabla">0,00 €</td><td></td><td></td></tr>
-          </tfoot>
-        </table>
-      </div>
-    </details>
-  </section>
-
-  <!-- RESUMEN ANUAL -->
-  <section class="card">
-    <h2 style="margin-top:0">📆 Resumen anual</h2>
-    <div class="table-wrap" style="overflow:auto;background:#fff" id="wrap-anual">
-      <table id="tabla-anual">
-        <thead>
-          <tr>
-            <th>Mes</th><th>Jornadas</th><th>Vendido (€)</th><th>Umbral (€)</th><th>Comisión (€)</th><th>Estado</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-        <tfoot>
-          <tr><td>TOTAL</td><td id="a-jornadas">0</td><td id="a-vendido">0,00 €</td><td id="a-umbral">0,00 €</td><td id="a-comision">0,00 €</td><td></td></tr>
-        </tfoot>
-      </table>
     </div>
   </section>
 
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <div class="section-title">Registro día a día</div>
+      <div class="hint">Reglas: L–J Diario · V Cuponazo(+Eurojackpot) · S–D Sueldazo · Mar/Vie: Eurojackpot</div>
+    </div>
+    <div id="dias" class="days"></div>
+  </section>
 </main>
 
 <script>
-/* ========= Configuración de productos ========= */
-const PRODUCTOS = {
-  diario:        { nombre:"Diario",        familia:"muy-alto", precio:2,   porc:0.077 },
-  cuponazo:      { nombre:"Cuponazo",      familia:"muy-alto", precio:3,   porc:0.077 },
-  sueldazo:      { nombre:"Sueldazo",      familia:"muy-alto", precio:2,   porc:0.077 },
-  extraordinario:{ nombre:"Extraordinario",familia:"extra",    precio:2.5, porc:0 }, // % por tramos (más abajo)
-  eurojackpot:   { nombre:"Eurojackpot",   familia:"alto",     precio:2,   porc:0.06  },
-  triplex:       { nombre:"Triplex",       familia:"resto",    precio:0.5, porc:0.05  },
-  superonce:     { nombre:"Super Once",    familia:"resto",    precio:1,   porc:0.05  },
-  midia:         { nombre:"Mi Día",        familia:"resto",    precio:1,   porc:0.05  },
-  // Rascas por LIBRO:
-  rasca1:        { nombre:"Rasca 1€ (libro)",  familia:"resto", precio:100,  porc:0.05 },
-  rasca2:        { nombre:"Rasca 2€ (libro)",  familia:"resto", precio:100,  porc:0.05 },
-  rasca3:        { nombre:"Rasca 3€ (libro)",  familia:"resto", precio:150,  porc:0.05 },
-  rasca5:        { nombre:"Rasca 5€ (libro)",  familia:"resto", precio:150,  porc:0.05 },
-  rasca10:       { nombre:"Rasca 10€ (libro)", familia:"resto", precio:150,  porc:0.05 }
+/* ===== Config ===== */
+const MINIMO_DIA = 142;   // € por día (tabla 2025)
+const UMBRAL_DIA = 210;   // € por día (tabla 2025)
+
+// Precios por tipo
+const PRECIOS = {
+  diario: 2,
+  cuponazo: 3,
+  sueldazo: 2,
+  eurojackpot: 2,
+  rasca1: 1,
+  rasca2: 2,
+  rasca3: 3,
+  rasca5: 5,
+  rasca10: 10,
+  triplex: 0.5,
+  superonce: 1,
+  midia: 1,
+  extraordinario: 2.5
 };
 
-// Extraordinarios – tramos por cupones (solo aplica si el mes supera umbral):
-// 1-199:12%, 200-299:13%, 300-399:14%, 400-499:15%, 500-599:16%, 600+:17%
-function porcExtra(cupones){
-  if (cupones>=600) return 0.17;
-  if (cupones>=500) return 0.16;
-  if (cupones>=400) return 0.15;
-  if (cupones>=300) return 0.14;
-  if (cupones>=200) return 0.13;
-  if (cupones>=1)   return 0.12;
-  return 0;
+// Familias (para desglose)
+const FAMILIA = {
+  diario: "Diario",
+  cuponazo: "Cuponazo",
+  sueldazo: "Sueldazo",
+  eurojackpot: "Eurojackpot",
+  rasca1: "Rascas",
+  rasca2: "Rascas",
+  rasca3: "Rascas",
+  rasca5: "Rascas",
+  rasca10: "Rascas",
+  triplex: "Activos",
+  superonce: "Activos",
+  midia: "Activos",
+  extraordinario: "Extra"
+};
+
+// % comisión simple por tipo (aplicado solo si superas UMBRAL mensual)
+const PORC = {
+  diario: 0.077,
+  cuponazo: 0.077,
+  sueldazo: 0.077,
+  eurojackpot: 0.05,
+  rasca1: 0.065,
+  rasca2: 0.065,
+  rasca3: 0.065,
+  rasca5: 0.065,
+  rasca10: 0.065,
+  triplex: 0.05,
+  superonce: 0.05,
+  midia: 0.05,
+  extraordinario: 0.10
+};
+
+// Productos que se pueden añadir manualmente a un día
+const OPC_EXTRA = [
+  {id:"rasca1", txt:"Rasca 1 €"},
+  {id:"rasca2", txt:"Rasca 2 €"},
+  {id:"rasca3", txt:"Rasca 3 €"},
+  {id:"rasca5", txt:"Rasca 5 €"},
+  {id:"rasca10", txt:"Rasca 10 €"},
+  {id:"triplex", txt:"Triplex 0,50 €"},
+  {id:"superonce", txt:"Super Once 1 €"},
+  {id:"midia", txt:"Mi Día 1 €"},
+  {id:"extraordinario", txt:"Extraordinario 2,5 €"},
+];
+
+/* ===== Estado (LocalStorage por mes) ===== */
+const $mes = document.getElementById("mes");
+const $dias = document.getElementById("dias");
+const $jornadas = document.getElementById("jornadas");
+const $estadoMin = document.getElementById("estadoMin");
+const $estadoUmb = document.getElementById("estadoUmb");
+const $totalVendido = document.getElementById("totalVendido");
+const $comision = document.getElementById("comision");
+const $familias = document.getElementById("familias");
+
+function yyyymm(date){ return date.toISOString().slice(0,7); }
+function getKey(){ return "calc-once-" + $mes.value; }
+function loadMes(){
+  const raw = localStorage.getItem(getKey());
+  return raw ? JSON.parse(raw) : { dias:{} };
+}
+function saveMes(data){
+  localStorage.setItem(getKey(), JSON.stringify(data));
 }
 
-/* ========= Tabla Mínimo / Umbral (Jornadas 0..26) =========
-   Valores de ejemplo basados en documentación aportada (euros).
-   Si tienes una actualización oficial, cambia estos arrays. */
-const MINIMO = [0,142,284,426,568,710,852,994,1136,1278,1420,1562,1704,1846,1988,2130,2272,2414,2556,2698,2840,2982,3124,3266,3408,3550,3692];
-const UMBRAL = [0,210,420,630,840,1050,1260,1470,1680,1890,2100,2310,2520,2730,2940,3150,3360,3570,3780,3990,4200,4410,4620,4830,5040,5250,5460];
-// Nota: las posiciones 1..26 equivalen a jornadas; índice 0 es 0.
-
-const LS_KEY = "calc_once_2025_v2";
-
-/* ========= Estado ========= */
-let ventas = load();
-function load(){
-  try{ return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
-  catch{ return []; }
-}
-function save(){ localStorage.setItem(LS_KEY, JSON.stringify(ventas)); }
-
-/* ========= Utilidades ========= */
-const $ = (q)=>document.querySelector(q);
-const € = (n)=> (n||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2});
-
-function hoyISO(){
-  const d = new Date();
-  return d.toISOString().slice(0,10);
-}
-function yyyymm(dateStr){
-  return dateStr.slice(0,7);
-}
-function uniq(arr){ return [...new Set(arr)]; }
-
-/* Sugerir precio al cambiar tipo */
-function sugerirPrecio(){
-  const tipo = $("#tipo").value;
-  $("#precio").value = PRODUCTOS[tipo]?.precio ?? 0;
-}
-
-/* Añadir venta */
-function addVenta(){
-  const fecha = $("#fecha").value;
-  const tipo  = $("#tipo").value;
-  const unidades = parseInt($("#unidades").value||"0",10);
-  const precio = parseFloat($("#precio").value||"0");
-  const obs = $("#obs").value.trim();
-
-  if (!fecha) return alert("Selecciona una fecha.");
-  if (!PRODUCTOS[tipo]) return alert("Selecciona un tipo válido.");
-  if (!(unidades>0)) return alert("Indica unidades (>0).");
-  if (precio<0) return alert("Precio inválido.");
-
-  ventas.push({fecha, tipo, unidades, precio, obs});
-  save();
-  $("#unidades").value = 0;
-  $("#obs").value = "";
-  renderTodo();
-}
-
-/* Borrar venta por índice */
-function delVenta(idx){
-  ventas.splice(idx,1);
-  save();
-  renderTodo();
-}
-
-/* Calcular resumen del mes seleccionado */
-function resumenMes(yymm){
-  const listado = ventas.filter(v=>yyyymm(v.fecha)===yymm);
-  const fechasConVenta = uniq(listado.map(v=>v.fecha)).sort();
-  const jornadas = fechasConVenta.length;
-
-  const min = MINIMO[jornadas]||0;
-  const umb = UMBRAL[jornadas]||0;
-
-  // Totales por producto
-  const porProd = {};
-  for (const v of listado){
-    const p = PRODUCTOS[v.tipo];
-    const importe = v.unidades * v.precio;
-    if (!porProd[v.tipo]) porProd[v.tipo] = {nombre:p.nombre, familia:p.familia, unidades:0, importe:0, precio:v.precio};
-    porProd[v.tipo].unidades += v.unidades;
-    porProd[v.tipo].importe  += importe;
-    // precio último visto (visual)
-    porProd[v.tipo].precio = v.precio;
+/* ===== Reglas por día ===== */
+function productosPorFecha(fecha){ // fecha = Date
+  const d = fecha.getDay(); // 0=Dom, 1=Lun,... 6=Sab
+  const isTue = d===2, isFri = d===5;
+  const lista = [];
+  if (d>=1 && d<=4){ // L-J
+    lista.push({tipo:"diario", unidades:0});
+  } else if (d===5){ // Viernes
+    lista.push({tipo:"cuponazo", unidades:0});
+  } else { // Sab-Dom
+    lista.push({tipo:"sueldazo", unidades:0});
   }
-  const totalMes = Object.values(porProd).reduce((s,x)=>s+x.importe,0);
-
-  // Comisión: solo si total >= umbral
-  let comisionTotal = 0;
-  const detalleComi = {};
-  const totalCuponesExtra = (porProd["extraordinario"]?.unidades)||0;
-  const porcExtraMes = porcExtra(totalCuponesExtra);
-
-  for (const [k,x] of Object.entries(porProd)){
-    let porc = PRODUCTOS[k].porc;
-    if (k==="extraordinario") porc = porcExtraMes;
-    const comi = (totalMes>=umb) ? x.importe * porc : 0;
-    detalleComi[k] = {porc, comi};
-    comisionTotal += comi;
+  if (isTue || isFri){
+    lista.push({tipo:"eurojackpot", unidades:0});
   }
-
-  return {
-    listado, fechasConVenta, jornadas, minimo:min, umbral:umb,
-    porProd, totalMes, comisionTotal, detalleComi
-  };
+  return lista;
 }
 
-/* Resumen anual (por meses existentes en datos) */
-function resumenAnual(){
-  const meses = uniq(ventas.map(v=>yyyymm(v.fecha))).sort();
-  const filas = [];
-  let sumJ=0,sumV=0,sumU=0,sumC=0;
-
-  for (const m of meses){
-    const r = resumenMes(m);
-    const estado = (r.totalMes>=r.umbral) ? "Con comisión" : (r.totalMes>=r.minimo ? "Mínimo" : "Bajo mínimo");
-    filas.push({
-      mes: m, jornadas: r.jornadas, vendido: r.totalMes, umbral: r.umbral, comision:r.comisionTotal, estado
-    });
-    sumJ+=r.jornadas; sumV+=r.totalMes; sumU+=r.umbral; sumC+=r.comisionTotal;
-  }
-  return {filas, sumJ, sumV, sumU, sumC};
+/* ===== UI Día ===== */
+function filaProductoHTML(idDia, idx, item){
+  const tipo = item.tipo;
+  const precio = PRECIOS[tipo];
+  const fam = FAMILIA[tipo] || "Otros";
+  return `
+    <tr>
+      <td>
+        <select data-dia="${idDia}" data-idx="${idx}" class="selTipo">
+          ${opcionesTipo(tipo)}
+        </select>
+        <div class="family">${fam}</div>
+      </td>
+      <td class="right">
+        <input data-dia="${idDia}" data-idx="${idx}" class="inpUnd" type="number" min="0" step="1" value="${item.unidades}">
+      </td>
+      <td class="right muted">${precio.toFixed(2)} €</td>
+      <td class="right" data-imp="${idDia}-${idx}">${(item.unidades*precio).toFixed(2)} €</td>
+      <td class="right">
+        <button class="btn-ghost" data-del="${idDia}-${idx}" title="Quitar">🗑️</button>
+      </td>
+    </tr>
+  `;
+}
+function opcionesTipo(sel){
+  const todos = [
+    {id:"diario", txt:"Diario 2 €"},
+    {id:"cuponazo", txt:"Cuponazo 3 €"},
+    {id:"sueldazo", txt:"Sueldazo 2 €"},
+    {id:"eurojackpot", txt:"Eurojackpot 2 €"},
+    ...OPC_EXTRA
+  ];
+  return todos.map(o=>`<option value="${o.id}" ${o.id===sel?'selected':''}>${o.txt}</option>`).join("");
+}
+function tarjetaDiaHTML(idDia, fecha, dataDia){
+  const f = fecha.toLocaleDateString('es-ES',{weekday:'short', day:'2-digit', month:'2-digit'});
+  const trabajado = !!dataDia.trabajado;
+  const totalDia = totalDiaEuros(dataDia);
+  const estado = !trabajado ? 'danger' : totalDia>=UMBRAL_DIA ? 'ok' : totalDia>=MINIMO_DIA ? 'warn' : 'danger';
+  return `
+    <div class="day" id="day-${idDia}">
+      <header class="row" style="justify-content:space-between">
+        <div class="row" style="gap:8px">
+          <strong>${f}</strong>
+          <span class="tag">${trabajado?'Trabajado':'Descanso'}</span>
+        </div>
+        <div class="row">
+          <label class="row" style="gap:6px" title="Marcar si trabajaste este día">
+            <input type="checkbox" data-work="${idDia}" ${trabajado?'checked':''}>
+            <span class="muted">Trabajado</span>
+          </label>
+          <span class="pill ${estado}">${totalDia.toFixed(2)} €</span>
+        </div>
+      </header>
+      <table>
+        <thead>
+          <tr><th>Producto</th><th class="right">Unid.</th><th class="right">Precio</th><th class="right">Importe</th><th></th></tr>
+        </thead>
+        <tbody id="tbody-${idDia}">
+          ${dataDia.items.map((it,idx)=>filaProductoHTML(idDia, idx, it)).join("")}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">
+              <div class="row" style="justify-content:space-between">
+                <select data-add="${idDia}">
+                  <option value="">Añadir producto…</option>
+                  ${OPC_EXTRA.map(o=>`<option value="${o.id}">${o.txt}</option>`).join("")}
+                </select>
+                <span class="muted">Mín: ${MINIMO_DIA.toFixed(2)} € · Umbral: ${UMBRAL_DIA.toFixed(2)} €</span>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  `;
 }
 
-/* ========= Render ========= */
-function renderMes(){
-  const yymm = $("#mes").value;
-  const r = resumenMes(yymm);
-
-  // KPIs
-  $("#jornadas").textContent = r.jornadas;
-  $("#minimo").textContent = €(r.minimo)+" €";
-  $("#umbral").textContent = €(r.umbral)+" €";
-  $("#total-mes").textContent = €(r.totalMes)+" €";
-  $("#comision-mes").textContent = €(r.comisionTotal)+" €";
-
-  // Estado
-  const estado = $("#estado-mes");
-  if (r.totalMes>=r.umbral){
-    estado.className="badge ok"; estado.textContent="✅ Umbral superado (con comisión)";
-  }else if (r.totalMes>=r.minimo){
-    estado.className="badge warn"; estado.textContent="⚠️ Mínimo alcanzado (sin comisión)";
-  }else{
-    estado.className="badge bad"; estado.textContent="❌ Sin mínimo (sin comisión)";
+/* ===== Cálculos ===== */
+function totalDiaEuros(dia){
+  if (!dia.trabajado) return 0;
+  return dia.items.reduce((s,it)=>s + (PRECIOS[it.tipo]||0)*(Number(it.unidades)||0), 0);
+}
+function resumenMes(data){
+  let jornadas=0, total=0;
+  const fam = {};
+  for (const id in data.dias){
+    const d = data.dias[id];
+    if (d.trabajado){ jornadas++; }
+    const td = totalDiaEuros(d);
+    total += td;
+    // desgloses
+    for (const it of d.items){
+      const euros = (PRECIOS[it.tipo]||0)*(Number(it.unidades)||0);
+      const f = FAMILIA[it.tipo]||"Otros";
+      fam[f] = (fam[f]||0) + euros;
+    }
   }
-
-  // Barra progreso a mínimo
-  const pc = (r.minimo>0) ? Math.min(100, (r.totalMes/r.minimo)*100) : 0;
-  $("#bar-min").style.width = pc.toFixed(1)+"%";
-  $("#texto-progreso").textContent = `${€(r.totalMes)} € vendidos de ${€(r.minimo)} € (mínimo)`;
-
-  // Tabla ventas del mes
-  const tb = $("#tabla-mes tbody");
-  tb.innerHTML = "";
-  r.listado
-    .map((v,idx)=>({v,idx}))
-    .sort((a,b)=> (a.v.fecha<b.v.fecha?-1:a.v.fecha>b.v.fecha?1:0))
-    .forEach(({v,idx})=>{
-      const tr = document.createElement("tr");
-      const importe = v.unidades*v.precio;
-      tr.innerHTML = `
-        <td>${v.fecha}</td>
-        <td>${PRODUCTOS[v.tipo].nombre}</td>
-        <td>${v.unidades}</td>
-        <td>${€(v.precio)}</td>
-        <td>${€(importe)}</td>
-        <td style="text-align:left">${v.obs||""}</td>
-        <td><button class="btn-secondary" onclick="delVenta(${ventas.indexOf(v)})">Eliminar</button></td>
-      `;
-      tb.appendChild(tr);
-    });
-  $("#total-mes-tabla").textContent = €(r.totalMes)+" €";
-
-  // Desglose por producto
-  const tpb = $("#tabla-productos tbody");
-  tpb.innerHTML = "";
-  let sumVend=0,sumComi=0;
-  for (const [k,x] of Object.entries(r.porProd).sort((a,b)=>a[1].nombre.localeCompare(b[1].nombre))){
-    const det = r.detalleComi[k];
-    const porc = det ? det.porc : PRODUCTOS[k].porc;
-    const comi = det ? det.comi : 0;
-    const fam = PRODUCTOS[k].familia;
-    const famText = fam==="muy-alto"?"Muy alto": fam==="alto"?"Alto": fam==="extra"?"Extraordinario":"Resto";
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${x.nombre}</td>
-      <td class="muted">${famText}</td>
-      <td>${x.unidades}</td>
-      <td>${€(x.precio)}</td>
-      <td>${€(x.importe)}</td>
-      <td>${porc? (porc*100).toFixed(1)+"%":"—"}</td>
-      <td>${€(comi)}</td>
-    `;
-    tpb.appendChild(tr);
-    sumVend+=x.importe; sumComi+=comi;
+  const minimo = jornadas*MINIMO_DIA;
+  const umbral = jornadas*UMBRAL_DIA;
+  // comisión: solo si superas umbral → sumatoria por producto con su %
+  let comi = 0;
+  if (total >= umbral){
+    for (const id in data.dias){
+      for (const it of data.dias[id].items){
+        const euros = (PRECIOS[it.tipo]||0)*(Number(it.unidades)||0);
+        comi += euros * (PORC[it.tipo]||0.05);
+      }
+    }
   }
-  $("#t-vendido").textContent = €(sumVend)+" €";
-  $("#t-comi").textContent = €(sumComi)+" €";
+  return {jornadas, total, minimo, umbral, fam, comi};
 }
 
-function renderAnual(){
-  const r = resumenAnual();
-  const tb = $("#tabla-anual tbody");
-  tb.innerHTML = "";
-  for (const f of r.filas){
-    const tr = document.createElement("tr");
-    const cls = f.estado.includes("Umbral")||f.estado.includes("comisión")? "ok" :
-                (f.vendido>=f.umbral?"ok": f.vendido>=MINIMO[f.jornadas]?"warn":"bad");
-    tr.innerHTML = `
-      <td>${f.mes}</td>
-      <td>${f.jornadas}</td>
-      <td>${€(f.vendido)} €</td>
-      <td>${€(f.umbral)} €</td>
-      <td>${€(f.comision)} €</td>
-      <td class="${cls}">${f.estado}</td>
-    `;
-    tb.appendChild(tr);
+/* ===== Render ===== */
+function render(){
+  const data = loadMes();
+  // crear tarjetas
+  $dias.innerHTML = "";
+  const [y,m] = $mes.value.split("-").map(n=>parseInt(n,10));
+  const start = new Date(y, m-1, 1);
+  const end = new Date(y, m, 0).getDate();
+  for (let d=1; d<=end; d++){
+    const fecha = new Date(y, m-1, d);
+    const idDia = fecha.toISOString().slice(0,10);
+    const dData = data.dias[idDia] || {trabajado:false, items:[]};
+    $dias.insertAdjacentHTML("beforeend", tarjetaDiaHTML(idDia, fecha, dData));
   }
-  $("#a-jornadas").textContent = r.sumJ;
-  $("#a-vendido").textContent = €(r.sumV)+" €";
-  $("#a-umbral").textContent = €(r.sumU)+" €";
-  $("#a-comision").textContent = €(r.sumC)+" €";
+  // summary
+  const r = resumenMes(data);
+  $jornadas.textContent = `${r.jornadas} jornada${r.jornadas===1?"":"s"}`;
+  $estadoMin.textContent = `Mínimo ${r.minimo.toFixed(2)} €`;
+  $estadoUmb.textContent = `Umbral ${r.umbral.toFixed(2)} €`;
+  // colores de estado
+  $estadoMin.className = "pill " + (r.total>=r.minimo ? "ok":"warn");
+  $estadoUmb.className = "pill " + (r.total>=r.umbral ? "ok":"danger");
+  // totales
+  $totalVendido.textContent = `${r.total.toFixed(2)} €`;
+  $comision.textContent = `${r.comi.toFixed(2)} €`;
+  // familias
+  $familias.innerHTML = Object.keys(r.fam).length
+    ? Object.entries(r.fam).map(([k,v])=>`<div>${k}: <b>${v.toFixed(2)} €</b></div>`).join("")
+    : `<div class="muted">Sin ventas todavía</div>`;
+  // Listeners delegados
+  wireEvents();
 }
 
-function renderTodo(){
-  const m = $("#mes").value;
-  renderMes(m);
-  renderAnual();
+/* ===== Eventos por delegación ===== */
+function wireEvents(){
+  // marcar trabajado
+  document.querySelectorAll("[data-work]").forEach(chk=>{
+    chk.onchange = () => {
+      const id = chk.getAttribute("data-work");
+      const data = loadMes();
+      data.dias[id] = data.dias[id] || {trabajado:false, items:[]};
+      data.dias[id].trabajado = chk.checked;
+      saveMes(data); render();
+    };
+  });
+  // cambiar tipo
+  document.querySelectorAll(".selTipo").forEach(sel=>{
+    sel.onchange = () => {
+      const idDia = sel.getAttribute("data-dia");
+      const idx = parseInt(sel.getAttribute("data-idx"),10);
+      const data = loadMes();
+      data.dias[idDia].items[idx].tipo = sel.value;
+      saveMes(data); render();
+    };
+  });
+  // cambiar unidades
+  document.querySelectorAll(".inpUnd").forEach(inp=>{
+    inp.oninput = () => {
+      const idDia = inp.getAttribute("data-dia");
+      const idx = parseInt(inp.getAttribute("data-idx"),10);
+      const data = loadMes();
+      data.dias[idDia].items[idx].unidades = Number(inp.value)||0;
+      saveMes(data);
+      // actualizar solo importe de la fila para fluidez
+      const tipo = data.dias[idDia].items[idx].tipo;
+      const imp = (PRECIOS[tipo]||0)*(Number(inp.value)||0);
+      const cell = document.querySelector(`[data-imp="${idDia}-${idx}"]`);
+      if (cell) cell.textContent = `${imp.toFixed(2)} €`;
+      // actualizar totales rápidos
+      fastSummary();
+    };
+  });
+  // añadir extra
+  document.querySelectorAll("[data-add]").forEach(sel=>{
+    sel.onchange = () => {
+      const idDia = sel.getAttribute("data-add");
+      const v = sel.value;
+      if (!v) return;
+      const data = loadMes();
+      data.dias[idDia] = data.dias[idDia] || {trabajado:true, items:[]};
+      data.dias[idDia].items.push({tipo:v, unidades:0});
+      saveMes(data); render();
+    };
+  });
+  // borrar fila
+  document.querySelectorAll("[data-del]").forEach(btn=>{
+    btn.onclick = () => {
+      const [idDia, idx] = btn.getAttribute("data-del").split("-");
+      const data = loadMes();
+      data.dias[idDia].items.splice(Number(idx),1);
+      saveMes(data); render();
+    };
+  });
 }
 
-/* ========= Export CSV ========= */
+/* ===== Fast summary en cambios de unidades ===== */
+function fastSummary(){
+  const r = resumenMes(loadMes());
+  $jornadas.textContent = `${r.jornadas} jornada${r.jornadas===1?"":"s"}`;
+  $estadoMin.textContent = `Mínimo ${r.minimo.toFixed(2)} €`;
+  $estadoUmb.textContent = `Umbral ${r.umbral.toFixed(2)} €`;
+  $estadoMin.className = "pill " + (r.total>=r.minimo ? "ok":"warn");
+  $estadoUmb.className = "pill " + (r.total>=r.umbral ? "ok":"danger");
+  $totalVendido.textContent = `${r.total.toFixed(2)} €`;
+  $comision.textContent = `${r.comi.toFixed(2)} €`;
+  $familias.innerHTML = Object.keys(r.fam).length
+    ? Object.entries(r.fam).map(([k,v])=>`<div>${k}: <b>${v.toFixed(2)} €</b></div>`).join("")
+    : `<div class="muted">Sin ventas todavía</div>`;
+}
+
+/* ===== Autorrellenar mes ===== */
+function autorrellenar(){
+  const data = loadMes();
+  const [y,m] = $mes.value.split("-").map(n=>parseInt(n,10));
+  const start = new Date(y, m-1, 1);
+  const end = new Date(y, m, 0).getDate();
+  for (let d=1; d<=end; d++){
+    const fecha = new Date(y, m-1, d);
+    const id = fecha.toISOString().slice(0,10);
+    if (!data.dias[id]){
+      data.dias[id] = {trabajado:true, items: productosPorFecha(fecha)};
+    }
+  }
+  saveMes(data); render();
+}
+
+/* ===== CSV ===== */
 function exportCSV(){
-  let rows = [["fecha","producto","familia","unidades","precio","importe","observaciones"]];
-  ventas
-    .sort((a,b)=>a.fecha.localeCompare(b.fecha))
-    .forEach(v=>{
-      const p = PRODUCTOS[v.tipo];
-      const imp = v.unidades*v.precio;
-      rows.push([v.fecha,p.nombre,p.familia,v.unidades, v.precio.toString().replace(".",","), imp.toFixed(2).replace(".",","), (v.obs||"").replaceAll('"','""')]);
-    });
-  const csv = rows.map(r=>r.map(x=>{
-    const s = (x==null?"":String(x));
-    return /[",;\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
-  }).join(";")).join("\n");
-
+  const data = loadMes();
+  const rows = [["Fecha","Trabajado","Producto","Familia","Unidades","Precio","Importe (€)"]];
+  for (const id in data.dias){
+    const d = data.dias[id];
+    if (!d.trabajado && (!d.items || !d.items.length)){
+      rows.push([id,"No","","",0,"", "0.00"]);
+      continue;
+    }
+    for (const it of d.items){
+      const precio = PRECIOS[it.tipo]||0;
+      const imp = precio*(Number(it.unidades)||0);
+      rows.push([id, d.trabajado?"Sí":"No", it.tipo, FAMILIA[it.tipo]||"", it.unidades, precio.toFixed(2), imp.toFixed(2)]);
+    }
+  }
+  const csv = rows.map(r=>r.map(v=>String(v).replace(/"/g,'""')).map(v=>`"${v}"`).join(",")).join("\n");
   const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "ventas_once.csv";
+  a.download = `ventas_${$mes.value}.csv`;
   a.click();
   URL.revokeObjectURL(a.href);
 }
 
-/* ========= Eventos ========= */
-$("#tipo").addEventListener("change", sugerirPrecio);
-$("#btn-add").addEventListener("click", addVenta);
-$("#btn-export").addEventListener("click", exportCSV);
-$("#btn-theme").addEventListener("click", ()=>{
-  const r = document.documentElement;
-  r.dataset.theme = r.dataset.theme==="dark" ? "" : "dark";
-  localStorage.setItem("theme_once", r.dataset.theme || "light");
-});
-$("#btn-clear-mes").addEventListener("click", ()=>{
-  const yymm = $("#mes").value;
-  if (!yymm) return;
-  if (!confirm("¿Borrar todas las ventas del mes "+yymm+"?")) return;
-  ventas = ventas.filter(v=>yyyymm(v.fecha)!==yymm);
-  save(); renderTodo();
-});
-$("#btn-clear-all").addEventListener("click", ()=>{
-  if (!confirm("¿Borrar TODOS los datos? Esta acción no se puede deshacer.")) return;
-  ventas = []; save(); renderTodo();
-});
+/* ===== Tema & PWA ===== */
+const $tema = document.getElementById("tema");
+$tema.onclick = ()=>{
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme==="light" ? "" : "light";
+  localStorage.setItem("theme", html.dataset.theme || "dark");
+};
+(function initTheme(){
+  const t = localStorage.getItem("theme") || "dark";
+  if (t==="light") document.documentElement.dataset.theme = "light";
+})();
 
-/* ========= Init ========= */
+// SW (solo si existe el archivo en el repo)
+if ('serviceWorker' in navigator){
+  fetch('./service-worker.js',{method:'HEAD'}).then(r=>{
+    if(r.ok){
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(()=>console.log('SW registrado', location.origin + location.pathname.replace(/[^/]+$/,'')))
+        .catch(()=>{});
+    }else{
+      console.log('SW no encontrado (404). Registro omitido.');
+    }
+  }).catch(()=>{});
+}
+
+/* ===== Init ===== */
 (function init(){
-  // Fecha/mes por defecto
-  $("#fecha").value = hoyISO();
-  const m = hoyISO().slice(0,7);
-  $("#mes").value = m;
-
-  // Tema recordado
-  const t = localStorage.getItem("theme_once");
-  if (t==="dark") document.documentElement.dataset.theme="dark";
-
-  // Precio inicial sugerido
-  sugerirPrecio();
-
-  // Primera pintura
-  renderTodo();
-
-  // Registrar SW si existe
-  if ("serviceWorker" in navigator){
-    fetch("./service-worker.js",{method:"HEAD"}).then(r=>{
-      if (r.ok) navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
-    }).catch(()=>{});
-  }
+  // mes por defecto: actual
+  const now = new Date();
+  $mes.value = yyyymm(now);
+  // listeners
+  document.getElementById("autoMes").onclick = autorrellenar;
+  document.getElementById("csv").onclick = exportCSV;
+  $mes.onchange = ()=>render();
+  render();
 })();
 </script>
 </body>
