@@ -190,7 +190,7 @@
         <table id="tabla">
           <thead>
             <tr>
-              <th>Fecha</n>
+              <th>Fecha</th>
               <th>Diario</th>
               <th>Cuponazo</th>
               <th>Sueldazo</th>
@@ -297,7 +297,7 @@
       save(data);
     }
 
-    function fmt€(n){ return (n||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+    function fmtEur(n){ return (n||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2}); }
 
     function calcTotal(entry){
       const totalCupones = (entry.diario||0)*PRICES.diario + (entry.cuponazo||0)*PRICES.cuponazo + (entry.sueldazo||0)*PRICES.sueldazo;
@@ -333,15 +333,15 @@
           <td>${e.r5||0}</td>
           <td>${e.r10||0}</td>
           <td>${e.triples||0}</td>
-          <td>${fmt€(e.superonce||0)}</td>
+          <td>${fmtEur(e.superonce||0)}</td>
           <td>${e.miDia||0}</td>
           <td>${e.eurojackpot||0}</td>
-          <td class="mono">${fmt€(rowTotal)}</td>
+          <td class="mono">${fmtEur(rowTotal)}</td>
           <td><button class="pill" data-del="${f}">🗑️</button></td>`;
         tbody.appendChild(tr);
       }
 
-      const tot€ = calcTotal(tot);
+      const totEur = calcTotal(tot);
       tfoot.innerHTML = `
         <tr>
           <th>Total</th>
@@ -354,10 +354,10 @@
           <th>${tot.r5}</th>
           <th>${tot.r10}</th>
           <th>${tot.triples}</th>
-          <th class="mono">${fmt€(tot.superonce)}</th>
+          <th class="mono">${fmtEur(tot.superonce)}</th>
           <th>${tot.miDia}</th>
           <th>${tot.eurojackpot}</th>
-          <th class="mono">${fmt€(tot€)}</th>
+          <th class="mono">${fmtEur(totEur)}</th>
           <th></th>
         </tr>`;
 
@@ -365,15 +365,15 @@
       const minimo = 142 * jornadas;
       const umbral = 210 * jornadas;
       kpiJornadas.textContent = jornadas;
-      kpiVendido.textContent = fmt€(vendido);
-      kpiMinimo.textContent = fmt€(minimo);
-      kpiUmbral.textContent = fmt€(umbral);
+      kpiVendido.textContent = fmtEur(vendido);
+      kpiMinimo.textContent = fmtEur(minimo);
+      kpiUmbral.textContent = fmtEur(umbral);
 
       const vMin = minimo>0? Math.min(1, vendido/minimo): 0;
       const vUmb = umbral>0? Math.min(1, vendido/umbral): 0;
       progMin.value = vMin; progUmb.value = vUmb;
-      txtMin.textContent = vendido>=minimo? `✅ Alcanzado. +${fmt€(vendido-minimo)} sobre mínimo.` : `Faltan ${fmt€(minimo-vendido)} para el mínimo.`;
-      txtUmb.textContent = vendido>=umbral? `✅ Alcanzado. +${fmt€(vendido-umbral)} sobre umbral.` : `Faltan ${fmt€(umbral-vendido)} para el umbral.`;
+      txtMin.textContent = vendido>=minimo? `✅ Alcanzado. +${fmtEur(vendido-minimo)} sobre mínimo.` : `Faltan ${fmtEur(minimo-vendido)} para el mínimo.`;
+      txtUmb.textContent = vendido>=umbral? `✅ Alcanzado. +${fmtEur(vendido-umbral)} sobre umbral.` : `Faltan ${fmtEur(umbral-vendido)} para el umbral.`;
 
       // Borrado por fila
       tbody.querySelectorAll('button[data-del]').forEach(btn=>{
@@ -438,14 +438,14 @@
       let tot = {diario:0,cuponazo:0,sueldazo:0,r1:0,r2:0,r3:0,r5:0,r10:0,triples:0,superonce:0,miDia:0,eurojackpot:0};
       for(const f of fechas){
         const e = month[f];
-        const t€ = calcTotal(e);
-        rows.push([f,e.diario||0,e.cuponazo||0,e.sueldazo||0,e.r1||0,e.r2||0,e.r3||0,e.r5||0,e.r10||0,e.triples||0,(e.superonce||0).toFixed(2),e.miDia||0,e.eurojackpot||0,t€.toFixed(2)]);
+        const tEur = calcTotal(e);
+        rows.push([f,e.diario||0,e.cuponazo||0,e.sueldazo||0,e.r1||0,e.r2||0,e.r3||0,e.r5||0,e.r10||0,e.triples||0,(e.superonce||0).toFixed(2),e.miDia||0,e.eurojackpot||0,tEur.toFixed(2)]);
         for(const k in tot){ tot[k]+= (e[k]||0); }
       }
-      const tot€ = calcTotal(tot);
-      rows.push(['TOTAL',tot.diario,tot.cuponazo,tot.sueldazo,tot.r1,tot.r2,tot.r3,tot.r5,tot.r10,tot.triples,tot.superonce.toFixed(2),tot.miDia,tot.eurojackpot,tot€.toFixed(2)]);
+      const totEur2 = calcTotal(tot);
+      rows.push(['TOTAL',tot.diario,tot.cuponazo,tot.sueldazo,tot.r1,tot.r2,tot.r3,tot.r5,tot.r10,tot.triples,tot.superonce.toFixed(2),tot.miDia,tot.eurojackpot,totEur2.toFixed(2)]);
 
-      // CSV seguro (saltos de línea con "\n")
+      // CSV con saltos de línea correctos
       const csv = rows.map(r=>r.map(x=>`"${String(x).replaceAll('"','""')}"`).join(',')).join('\n');
       const blob = new Blob([csv],{type:'text/csv;charset=utf-8'});
       const a = document.createElement('a');
