@@ -1,506 +1,336 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Calculadora de Comisiones ONCE 2025</title>
-  <meta name="theme-color" content="#0f766e" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Calculadora ONCE 2025</title>
 
-  <!-- Manifest (debe existir en la raíz). Si no lo tienes, no pasa nada: la app funciona igual -->
-  <link rel="manifest" href="./manifest.json">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0ea5e9"/>
+
+  <!-- Evita 404 del favicon usando un data URL -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="%230ea5e9"/><text x="50%" y="57%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="64" fill="white">O</text></svg>'>
 
   <style>
     :root{
-      --bg:#ffffff; --fg:#0f172a; --card:#f1f5f9; --muted:#475569;
-      --primary:#0f766e; --primary-fg:#ecfeff; --ring:#99f6e4;
+      --bg:#ffffff; --fg:#0f172a; --card:#f1f5f9; --accent:#0ea5e9;
+      --ok-bg:#dcfce7; --ok-fg:#14532d; --warn-bg:#fff7ed; --warn-fg:#7c2d12; --bad-bg:#fee2e2; --bad-fg:#7f1d1d;
+      --border:#0001;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root{
+        --bg:#0b1220; --fg:#e5e7eb; --card:#0f172a; --accent:#38bdf8;
+        --border:#ffffff22;
+      }
     }
     [data-theme="dark"]{
-      --bg:#0b1220; --fg:#e2e8f0; --card:#111827; --muted:#94a3b8;
-      --primary:#14b8a6; --primary-fg:#022c22; --ring:#115e59;
+      --bg:#0b1220; --fg:#e5e7eb; --card:#0f172a; --accent:#38bdf8; --border:#ffffff22;
     }
+    [data-theme="light"]{
+      --bg:#ffffff; --fg:#0f172a; --card:#f1f5f9; --accent:#0ea5e9; --border:#0001;
+    }
+
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:var(--bg);color:var(--fg)}
-    header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid #0001}
-    .wrap{max-width:960px;margin:0 auto;padding:1rem}
-    h1{margin:0.5rem 0;color:var(--primary)}
-    .grid{display:grid;gap:0.75rem}
-    @media (min-width:768px){.grid-2{grid-template-columns:1fr 1fr}}
-    .card{background:var(--card);border-radius:14px;padding:1rem;border:1px solid #0001}
-    label{font-weight:600;font-size:0.95rem}
-    input,select,button,textarea{
-      width:100%;padding:0.7rem;border-radius:10px;border:1px solid #0002;background:#fff0;
-      color:var(--fg);outline:none
-    }
-    input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px var(--ring)}
-    .row{display:grid;gap:0.5rem;margin:0.35rem 0}
-    .btn{background:var(--primary);color:var(--primary-fg);border:none;font-weight:700;cursor:pointer}
-    .btn:disabled{opacity:.6;cursor:not-allowed}
-    .btn-secondary{background:#0ea5e9}
-    .btn-ghost{background:#0000;color:var(--primary);border:1px solid var(--primary)}
-    .pill{display:inline-block;padding:0.25rem 0.6rem;border-radius:999px;background:#0002;margin-right:0.25rem;font-size:.85rem}
-    .alert{padding:.6rem;border-radius:10px;margin-top:.5rem}
-    .ok{background:#dcfce7;color:#14532d}
-    .warn{background:#fff7ed;color:#7c2d12}
-    .bad{background:#fee2e2;color:#7f1d1d}
-    table{width:100%;border-collapse:collapse;font-size:.95rem}
-    th,td{padding:.45rem;border-bottom:1px dashed #0002}
-    tfoot td{font-weight:700}
-    .right{text-align:right}
-    .muted{color:var(--muted)}
-    .tag{display:inline-block;background:#0002;padding:.2rem .5rem;border-radius:8px;margin:.15rem 0}
-    .chips{display:flex;gap:.35rem;flex-wrap:wrap}
+    .wrap{max-width:900px;margin:0 auto;padding:1rem}
+    h1{margin:.5rem 0}
+    .row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+    .spacer{flex:1}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin:.75rem 0}
+    .grid{display:grid;gap:.75rem}
+    @media(min-width:720px){.grid-2{grid-template-columns:1fr 1fr}}
+    label{font-weight:600}
+    input,select,button{width:100%;padding:.65rem;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--fg)}
+    button{background:var(--accent);color:#fff;font-weight:700;cursor:pointer;border:none}
+    .btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
     .small{font-size:.85rem}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:.5rem;border-bottom:1px dashed var(--border)}
+    td.right,th.right{text-align:right}
+    .muted{color:#94a3b8;font-size:.9rem}
+    .kpi{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
+    .pill{background:transparent;border:1px solid var(--border);border-radius:999px;padding:.25rem .6rem}
+    .alert{padding:.6rem;border-radius:10px;margin-top:.5rem}
+    .ok{background:var(--ok-bg);color:var(--ok-fg)}
+    .warn{background:var(--warn-bg);color:var(--warn-fg)}
+    .bad{background:var(--bad-bg);color:var(--bad-fg)}
+    a.btn-ghost{text-decoration:none;display:inline-block}
   </style>
 </head>
 <body>
-<header>
-  <div class="wrap grid grid-2" style="align-items:center">
-    <div>
+  <div class="wrap">
+    <div class="row">
       <h1>Calculadora de Comisiones ONCE 2025</h1>
-      <div class="muted small">Tramos + registro diario + resumen mensual + CSV</div>
+      <div class="spacer"></div>
+      <button id="tema" class="btn-ghost small" title="Tema oscuro/claro">🌗 Tema</button>
+      <a class="btn-ghost small" href="#" id="instalar" title="Instalar app">⬇️ Instalar</a>
     </div>
-    <div class="chips" style="justify-content:end">
-      <button id="themeBtn" class="btn-ghost" type="button">🌗 Tema</button>
-      <button id="exportBtn" class="btn-ghost" type="button">⬇️ Exportar CSV</button>
-      <button id="clearBtn" class="btn-ghost" type="button">🗑️ Vaciar datos</button>
-    </div>
-  </div>
-</header>
+    <p class="muted">Añade tus ventas diarias. Calcula jornadas (fechas únicas), mínimo/umbral y comisiones (estándar y extraordinarios).</p>
 
-<main class="wrap grid grid-2">
-  <!-- CALCULADORA RÁPIDA -->
-  <section class="card">
-    <h2>1) Cálculo rápido</h2>
-    <div class="row">
-      <label for="tipo">Tipo de producto</label>
-      <select id="tipo">
-        <option value="diario">Diario (2€)</option>
-        <option value="cuponazo">Cuponazo (3€)</option>
-        <option value="sueldazo">Sueldazo (2€)</option>
-        <option value="rasca">Rasca (1-10€)</option>
-        <option value="triplex">Triplex (0,50€)</option>
-        <option value="superonce">Super Once (1€)</option>
-        <option value="midia">Mi Día (1€)</option>
-        <option value="eurojackpot">Eurojackpot (2€)</option>
-        <option value="extraordinario">Extraordinario</option>
-        <option value="resto">Otros</option>
-      </select>
-    </div>
-
-    <div class="grid">
-      <div class="row">
-        <label for="dias">Días trabajados (1–26)</label>
-        <input id="dias" type="number" min="1" max="26" value="20">
+    <!-- Entrada -->
+    <section class="card">
+      <div class="grid grid-2">
+        <div>
+          <label for="fecha">Fecha</label>
+          <input id="fecha" type="date">
+        </div>
+        <div>
+          <label for="tipo">Producto</label>
+          <select id="tipo">
+            <option value="diario">Diario (2€)</option>
+            <option value="cuponazo">Cuponazo (3€)</option>
+            <option value="sueldazo">Sueldazo (2€)</option>
+            <option value="rasca">Rasca (1–10€)</option>
+            <option value="triplex">Triplex (0,50€)</option>
+            <option value="superonce">Super Once (1€)</option>
+            <option value="midia">Mi Día (1€)</option>
+            <option value="eurojackpot">Eurojackpot (2€)</option>
+            <option value="extraordinario">Extraordinario</option>
+            <option value="resto">Otros</option>
+          </select>
+        </div>
+        <div>
+          <label for="unidades">Unidades</label>
+          <input id="unidades" type="number" min="0" value="0">
+        </div>
+        <div>
+          <label for="precio">Precio (€)</label>
+          <input id="precio" type="number" min="0" step="0.1" value="2">
+        </div>
       </div>
-      <div class="row">
-        <label for="unidades">Unidades vendidas</label>
-        <input id="unidades" type="number" min="0" value="0">
+      <div class="grid" style="margin-top:.5rem">
+        <button id="add">➕ Añadir venta</button>
       </div>
-    </div>
+      <p class="muted small">El precio se autocompleta según el producto, pero puedes cambiarlo.</p>
+    </section>
 
-    <div class="row">
-      <label for="precio">Precio por unidad (€)</label>
-      <input id="precio" type="number" min="0" step="0.1" value="2">
-      <div class="muted small">Se autocompleta según el producto. Puedes cambiarlo si hace falta.</div>
-    </div>
-
-    <div class="row">
-      <button id="calcBtn" class="btn">🔢 Calcular</button>
-    </div>
-
-    <div id="resultado" class="row"></div>
-  </section>
-
-  <!-- REGISTRO DIARIO -->
-  <section class="card">
-    <h2>2) Registro diario</h2>
-    <div class="grid">
-      <div class="row">
-        <label for="fecha">Fecha</label>
-        <input id="fecha" type="date">
+    <!-- Historial -->
+    <section class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:.25rem 0">Historial</h2>
+        <div class="row">
+          <button id="csv" class="btn-ghost">⬇️ CSV</button>
+          <button id="clear" class="btn-ghost">🗑️ Vaciar</button>
+        </div>
       </div>
-      <div class="row">
-        <label for="tipoDia">Producto</label>
-        <select id="tipoDia">
-          <option value="diario">Diario</option>
-          <option value="cuponazo">Cuponazo</option>
-          <option value="sueldazo">Sueldazo</option>
-          <option value="rasca">Rasca</option>
-          <option value="triplex">Triplex</option>
-          <option value="superonce">Super Once</option>
-          <option value="midia">Mi Día</option>
-          <option value="eurojackpot">Eurojackpot</option>
-          <option value="extraordinario">Extraordinario</option>
-          <option value="resto">Otros</option>
-        </select>
-      </div>
-      <div class="row">
-        <label for="udsDia">Unidades</label>
-        <input id="udsDia" type="number" min="0" value="0">
-      </div>
-      <div class="row">
-        <label for="precioDia">Precio (€)</label>
-        <input id="precioDia" type="number" min="0" step="0.1" value="2">
-      </div>
-    </div>
-    <div class="row">
-      <button id="addBtn" class="btn-secondary">➕ Añadir al historial</button>
-    </div>
-
-    <div id="historialBox" class="row">
-      <table id="tablaHistorial">
+      <table>
         <thead>
           <tr>
             <th>Fecha</th><th>Producto</th><th class="right">Unid.</th><th class="right">Precio</th><th class="right">Importe</th><th></th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody id="tbody"></tbody>
         <tfoot>
-          <tr><td colspan="4" class="right">Total</td><td class="right" id="totalHist">0,00 €</td><td></td></tr>
+          <tr><td colspan="4" class="right"><b>Total</b></td><td class="right" id="total">0,00 €</td><td></td></tr>
         </tfoot>
       </table>
-      <div class="muted small">Se guarda automáticamente en tu dispositivo (localStorage).</div>
-    </div>
-  </section>
+    </section>
 
-  <!-- RESUMEN MENSUAL -->
-  <section class="card">
-    <h2>3) Resumen mensual</h2>
-    <div class="row">
-      <button id="resumenBtn" class="btn">📅 Calcular resumen</button>
-    </div>
-    <div id="resumenBox" class="row"></div>
-  </section>
-
-  <!-- AYUDA -->
-  <section class="card">
-    <h2>Ayuda rápida</h2>
-    <ul class="small">
-      <li>La comisión de productos estándar se aplica <b>solo si alcanzas el umbral</b> de la tabla (por jornadas).</li>
-      <li><b>Extraordinarios</b>: comisión por tramos de unidades (12%→17%).</li>
-      <li>El resumen mensual usa los <b>días únicos con ventas</b> como jornadas del mes.</li>
-      <li>Puedes exportar a CSV para revisar o enviar tus ventas.</li>
-    </ul>
-  </section>
-</main>
+    <!-- Resumen -->
+    <section class="card" id="resumen">
+      <h2 style="margin:.25rem 0">Resumen automático</h2>
+      <div id="kpis" class="kpi"></div>
+      <div id="estado"></div>
+      <div id="tablaResumen"></div>
+    </section>
+  </div>
 
 <script>
-/* ------------------ Datos base ------------------ */
+/* ===== Config ===== */
 const PRECIOS = {
   diario:2, cuponazo:3, sueldazo:2, rasca:1,
   triplex:0.5, superonce:1, midia:1, eurojackpot:2, extraordinario:2.5, resto:1.5
 };
-
-// % de comisión estándar (solo si se alcanza UMBRAL). Ajustables si ONCE cambia.
+// Comisión estándar (si total >= umbral)
 const PORC = {
-  diario:0.105, cuponazo:0.105, sueldazo:0.105,   // familia “Muy alto porcentaje”
-  rasca:0.065,                                     // rascas (aprox usada antes)
-  triplex:0.05, superonce:0.05, midia:0.05, eurojackpot:0.05, resto:0.06
+  diario:0.105, cuponazo:0.105, sueldazo:0.105,
+  rasca:0.065, triplex:0.05, superonce:0.05, midia:0.05, eurojackpot:0.05, resto:0.06
 };
-
-// Tramos Extraordinarios por unidades
+// Tabla MÍNIMO/UMBRAL por jornadas (1..26)
+const TABLA = [
+  [0,0],
+  [142,210],[284,420],[426,630],[568,840],[710,1050],[852,1260],[994,1470],[1136,1680],[1278,1890],
+  [1420,2100],[1562,2310],[1704,2520],[1846,2730],[1988,2940],[2130,3150],[2272,3360],[2414,3570],
+  [2556,3780],[2698,3990],[2840,4200],[2982,4410],[3124,4620],[3266,4830],[3408,5040],[3550,5250],[3692,5460]
+];
+// Extraordinarios por tramos (unidades)
 function comisionExtraordinario(unidades, precio){
   const tramos = [
-    {min:600, pct:0.17},
-    {min:500, pct:0.16},
-    {min:400, pct:0.15},
-    {min:300, pct:0.14},
-    {min:200, pct:0.13},
-    {min:1,   pct:0.12}
+    {min:600, pct:0.17},{min:500, pct:0.16},{min:400, pct:0.15},
+    {min:300, pct:0.14},{min:200, pct:0.13},{min:1, pct:0.12}
   ];
+  let pct = 0; for(const t of tramos){ if(unidades>=t.min){ pct=t.pct; break; } }
   const total = unidades * precio;
-  let pct = 0;
-  for(const t of tramos){ if(unidades >= t.min){ pct = t.pct; break; } }
-  return { total, pct, comision: total * pct };
+  return {pct,total,comision: total*pct};
 }
 
-// Tabla MÍNIMO/UMBRAL por jornadas (1–25). Fuente PDF accesible (valores €).
-// Índice = jornadas. [minimo, umbral]
-const TABLA = [
-  [0,0],        // 0 (sin usar)
-  [142,210],    // 1
-  [284,420],    // 2
-  [426,630],    // 3
-  [568,840],    // 4
-  [710,1050],   // 5
-  [852,1260],   // 6
-  [994,1470],   // 7
-  [1136,1680],  // 8
-  [1278,1890],  // 9
-  [1420,2100],  // 10
-  [1562,2310],  // 11
-  [1704,2520],  // 12
-  [1846,2730],  // 13
-  [1988,2940],  // 14
-  [2130,3150],  // 15
-  [2272,3360],  // 16
-  [2414,3570],  // 17
-  [2556,3780],  // 18
-  [2698,3990],  // 19
-  [2840,4200],  // 20
-  [2982,4410],  // 21
-  [3124,4620],  // 22
-  [3266,4830],  // 23
-  [3408,5040],  // 24
-  [3550,5250],  // 25
-  [3692,5460]   // 26 (estimación lineal; si no trabajas 26, no se usa)
-];
-
-/* ------------------ Utilidades ------------------ */
-const $ = (q)=>document.querySelector(q);
-const fmt = (n)=> (Number(n)||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
-const fmtInt = (n)=> (Number(n)||0).toLocaleString('es-ES');
+/* ===== Utils ===== */
+const $ = s=>document.querySelector(s);
+const fmt = n=>(Number(n)||0).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+const fmtInt = n=>(Number(n)||0).toLocaleString('es-ES');
 const todayISO = ()=> new Date().toISOString().slice(0,10);
 
-/* ------------------ Tema ------------------ */
-const root = document.documentElement;
-const themeBtn = $('#themeBtn');
-(function initTheme(){
-  const saved = localStorage.getItem('calc_theme');
-  if(saved) root.dataset.theme = saved;
+/* ===== DOM ===== */
+const fecha = $('#fecha'), tipo = $('#tipo'), unidades = $('#unidades'), precio = $('#precio');
+const addBtn = $('#add'), tbody = $('#tbody'), totalTd = $('#total');
+const csvBtn = $('#csv'), clearBtn = $('#clear');
+const kpis = $('#kpis'), estado = $('#estado'), tablaResumen = $('#tablaResumen');
+const btnTema = $('#tema'); const btnInstalar = $('#instalar');
+
+/* ===== Estado ===== */
+const KEY='once_hist_v3';
+function load(){ try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]} }
+function save(x){ localStorage.setItem(KEY, JSON.stringify(x)); }
+
+/* ===== Tema oscuro/claro ===== */
+(function initTema(){
+  const t = localStorage.getItem('theme');
+  if(t==='dark' || t==='light'){ document.documentElement.dataset.theme=t; }
 })();
-themeBtn.addEventListener('click', ()=>{
+btnTema.addEventListener('click', ()=>{
+  const root = document.documentElement;
   const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-  root.dataset.theme = next;
-  localStorage.setItem('calc_theme', next);
+  root.dataset.theme = next; localStorage.setItem('theme', next);
 });
 
-/* ------------------ Autocompletar precio ------------------ */
-const tipoSel = $('#tipo');
-const precioInp = $('#precio');
-function autoPrecio(){
-  const t = tipoSel.value;
-  if(PRECIOS[t]!=null) precioInp.value = PRECIOS[t];
-}
-tipoSel.addEventListener('change', autoPrecio);
-autoPrecio();
+/* ===== Init ===== */
+fecha.value = todayISO();
+tipo.addEventListener('change', ()=>{ if(PRECIOS[tipo.value]!=null) precio.value = PRECIOS[tipo.value]; });
+if(PRECIOS[tipo.value]!=null) precio.value = PRECIOS[tipo.value];
 
-/* ------------------ Cálculo rápido ------------------ */
-const diasInp = $('#dias');
-const udsInp = $('#unidades');
-const calcBtn = $('#calcBtn');
-const resultado = $('#resultado');
-
-calcBtn.addEventListener('click', ()=>{
-  const tipo = tipoSel.value;
-  const dias = Math.max(1, Math.min(26, parseInt(diasInp.value||'1',10)));
-  const uds  = Math.max(0, parseInt(udsInp.value||'0',10));
-  const precio = Math.max(0, parseFloat(precioInp.value||'0'));
-
-  const total = uds * precio;
-
-  if(tipo === 'extraordinario'){
-    const ce = comisionExtraordinario(uds, precio);
-    resultado.innerHTML = `
-      <div class="alert ok"><b>Extraordinario</b> por tramos</div>
-      <div>🔢 Vendidos: <b>${fmtInt(uds)}</b> × ${fmt(precio)} = <b>${fmt(ce.total)}</b></div>
-      <div>📈 Tramo aplicado: <b>${(ce.pct*100).toFixed(0)}%</b></div>
-      <div>💰 Comisión estimada: <b>${fmt(ce.comision)}</b></div>
-    `;
-    return;
-  }
-
-  // Mínimo / Umbral por jornadas
-  const [minimo, umbral] = TABLA[dias] || [0,0];
-
-  // % comisión según producto (solo si supera UMBRAL)
-  const pct = PORC[tipo] ?? 0;
-  const comision = total >= umbral ? total * pct : 0;
-
-  let clase = 'bad', msg='❌ No alcanzado el mínimo';
-  if(total >= umbral){ clase='ok'; msg='✅ Umbral superado: aplica comisión'; }
-  else if(total >= minimo){ clase='warn'; msg='⚠️ Mínimo superado: aún sin comisión'; }
-
-  resultado.innerHTML = `
-    <div>🔢 Vendidos: <b>${fmtInt(uds)}</b> × ${fmt(precio)} = <b>${fmt(total)}</b></div>
-    <div>📅 Días: <b>${dias}</b> → Mínimo: <b>${fmt(minimo)}</b> | Umbral: <b>${fmt(umbral)}</b></div>
-    <div>📈 Porcentaje (si ≥ umbral): <b>${(pct*100).toFixed(1)}%</b></div>
-    <div>💰 Comisión estimada: <b>${fmt(comision)}</b></div>
-    <div class="alert ${clase}">${msg}</div>
-  `;
-});
-
-/* ------------------ Registro diario (localStorage) ------------------ */
-const LS_KEY = 'calc_once_historial_v1';
-const fechaInp = $('#fecha');
-const tipoDiaSel = $('#tipoDia');
-const udsDiaInp = $('#udsDia');
-const precioDiaInp = $('#precioDia');
-const addBtn = $('#addBtn');
-const tbody = $('#tablaHistorial tbody');
-const totalHistTd = $('#totalHist');
-const clearBtn = $('#clearBtn');
-const exportBtn = $('#exportBtn');
-
-fechaInp.value = todayISO();
-
-tipoDiaSel.addEventListener('change', ()=>{
-  const t = tipoDiaSel.value;
-  if(PRECIOS[t]!=null) precioDiaInp.value = PRECIOS[t];
-});
-
-function loadHist(){
-  try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{return []}
-}
-function saveHist(arr){
-  localStorage.setItem(LS_KEY, JSON.stringify(arr));
-}
-function renderHist(){
-  const arr = loadHist();
-  tbody.innerHTML = '';
-  let total = 0;
-  arr.forEach((r,idx)=>{
-    const importe = r.unidades * r.precio;
-    total += importe;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
+/* ===== Render ===== */
+function render(){
+  const arr = load();
+  tbody.innerHTML=''; let total=0;
+  arr.forEach((r,i)=>{
+    const imp = r.unidades*r.precio; total+=imp;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
       <td>${r.fecha}</td>
       <td>${r.tipo}</td>
       <td class="right">${fmtInt(r.unidades)}</td>
       <td class="right">${fmt(r.precio)}</td>
-      <td class="right">${fmt(importe)}</td>
-      <td class="right"><button class="btn-ghost small" data-del="${idx}">Borrar</button></td>
+      <td class="right">${fmt(imp)}</td>
+      <td class="right"><button class="btn-ghost small" data-del="${i}">Borrar</button></td>
     `;
     tbody.appendChild(tr);
   });
-  totalHistTd.textContent = fmt(total);
+  totalTd.textContent = fmt(total);
+  resumen(arr);
 }
-renderHist();
+render();
 
-tbody.addEventListener('click',(e)=>{
-  const btn = e.target.closest('button[data-del]');
-  if(!btn) return;
-  const idx = +btn.dataset.del;
-  const arr = loadHist();
-  arr.splice(idx,1);
-  saveHist(arr);
-  renderHist();
+/* borrar línea */
+tbody.addEventListener('click', (e)=>{
+  const b = e.target.closest('button[data-del]'); if(!b) return;
+  const i = +b.dataset.del; const arr = load(); arr.splice(i,1); save(arr); render();
 });
 
+/* añadir venta */
 addBtn.addEventListener('click', ()=>{
-  const fecha = fechaInp.value || todayISO();
-  const tipo = tipoDiaSel.value;
-  const unidades = Math.max(0, parseInt(udsDiaInp.value||'0',10));
-  const precio = Math.max(0, parseFloat(precioDiaInp.value||'0'));
-
-  if(!unidades || !precio){ alert('Introduce unidades y precio'); return; }
-
-  const arr = loadHist();
-  arr.push({fecha,tipo,unidades,precio});
-  saveHist(arr);
-  renderHist();
-
-  // autoincremento simple para registrar rápido varios apuntes del mismo día
-  udsDiaInp.value = '0';
+  const f = fecha.value || todayISO();
+  const t = tipo.value;
+  const u = Math.max(0, parseInt(unidades.value||'0',10));
+  const p = Math.max(0, parseFloat(precio.value||'0'));
+  if(!u || !p){ alert('Introduce unidades y precio'); return; }
+  const arr = load(); arr.push({fecha:f,tipo:t,unidades:u,precio:p}); save(arr); render();
+  unidades.value='0';
 });
 
-/* ------------------ Resumen mensual ------------------ */
-const resumenBtn = $('#resumenBtn');
-const resumenBox = $('#resumenBox');
+/* exportar / limpiar */
+csvBtn.addEventListener('click', ()=>{
+  const arr = load(); if(!arr.length){ alert('No hay datos'); return; }
+  const head='fecha,tipo,unidades,precio,importe\n';
+  const rows=arr.map(r=>`${r.fecha},${r.tipo},${r.unidades},${r.precio},${(r.unidades*r.precio).toFixed(2)}`).join('\n');
+  const blob=new Blob([head+rows],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download='ventas_once.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+clearBtn.addEventListener('click', ()=>{
+  if(confirm('¿Borrar todo el historial de este dispositivo?')){
+    localStorage.removeItem(KEY); render();
+  }
+});
 
-function resumenMensual(){
-  const arr = loadHist();
-  if(!arr.length){ resumenBox.innerHTML = '<div class="alert warn">Sin datos en el historial.</div>'; return; }
+/* ===== Resumen ===== */
+function resumen(arr){
+  if(!arr.length){
+    kpis.innerHTML=''; estado.innerHTML='<div class="alert warn">Sin datos.</div>'; tablaResumen.innerHTML=''; return;
+  }
+  const jornadas = Array.from(new Set(arr.map(r=>r.fecha))).length;
+  const [minimo, umbral] = TABLA[Math.max(1, Math.min(26, jornadas))] || [0,0];
 
-  // Días únicos (jornadas)
-  const diasUnique = Array.from(new Set(arr.map(r=>r.fecha))).length;
-  const [minimo, umbral] = TABLA[Math.max(1, Math.min(26, diasUnique))] || [0,0];
-
-  // Totales por producto y total €
-  const totProd = {};
-  let totalMes = 0;
+  const totProd = {}; let totalMes=0;
   arr.forEach(r=>{
-    const imp = r.unidades * r.precio;
-    totalMes += imp;
-    totProd[r.tipo] = (totProd[r.tipo]||0) + imp;
+    const imp=r.unidades*r.precio; totalMes+=imp;
+    totProd[r.tipo]=(totProd[r.tipo]||0)+imp;
   });
 
-  // Comisión estándar (si supera UMBRAL)
-  let comisionEstandar = 0;
-  if(totalMes >= umbral){
-    for(const [tipo,imp] of Object.entries(totProd)){
-      if(tipo==='extraordinario') continue; // se calcula aparte
-      const pct = PORC[tipo] ?? 0;
-      comisionEstandar += imp * pct;
+  let comiStd=0;
+  if(totalMes>=umbral){
+    for(const [t,imp] of Object.entries(totProd)){
+      if(t==='extraordinario') continue;
+      comiStd += imp * (PORC[t]||0);
     }
   }
 
-  // Comisión extraordinarios (por tramos unidades)
-  const ventasExtra = arr.filter(r=>r.tipo==='extraordinario');
-  const unidadesExtra = ventasExtra.reduce((s,r)=>s+r.unidades,0);
-  const precioExtra = ventasExtra.length ? ventasExtra[0].precio : PRECIOS.extraordinario;
-  const ce = comisionExtraordinario(unidadesExtra, precioExtra);
+  const ex = arr.filter(r=>r.tipo==='extraordinario');
+  const udsEx = ex.reduce((s,r)=>s+r.unidades,0);
+  const precioEx = ex.length ? ex[0].precio : PRECIOS.extraordinario;
+  const ce = comisionExtraordinario(udsEx, precioEx);
 
-  const clase = totalMes>=umbral ? 'ok' : (totalMes>=minimo ? 'warn':'bad');
-  const msg   = totalMes>=umbral ? '✅ Umbral alcanzado' : (totalMes>=minimo ? '⚠️ Mínimo alcanzado, sin comisión estándar' : '❌ No se alcanza mínimo');
+  let cls='bad', msg='❌ No alcanzas el mínimo';
+  if(totalMes>=umbral){ cls='ok'; msg='✅ Umbral alcanzado: aplica comisión estándar'; }
+  else if(totalMes>=minimo){ cls='warn'; msg='⚠️ Mínimo alcanzado: sin comisión estándar aún'; }
 
-  // Tabla por producto
-  const filas = Object.entries(totProd).sort((a,b)=>b[1]-a[1]).map(([tipo,imp])=>{
-    const pct = (tipo==='extraordinario') ? (ce.pct*100) : ((totalMes>=umbral ? (PORC[tipo]||0)*100 : 0));
-    const comi = (tipo==='extraordinario') ? 0 : (totalMes>=umbral ? imp*(PORC[tipo]||0) : 0);
-    return `<tr><td>${tipo}</td><td class="right">${fmt(imp)}</td><td class="right">${pct.toFixed(1)}%</td><td class="right">${fmt(comi)}</td></tr>`;
+  kpis.innerHTML = `
+    <span class="pill">Jornadas: <b>${jornadas}</b></span>
+    <span class="pill">Mínimo: <b>${fmt(minimo)}</b></span>
+    <span class="pill">Umbral: <b>${fmt(umbral)}</b></span>
+    <span class="pill">Total: <b>${fmt(totalMes)}</b></span>
+  `;
+  estado.innerHTML = `<div class="alert ${cls}">${msg}</div>`;
+
+  const filas = Object.entries(totProd).sort((a,b)=>b[1]-a[1]).map(([t,imp])=>{
+    let pct=0, comi=0;
+    if(t==='extraordinario'){ pct = ce.pct*100; comi = ce.comision; }
+    else if(totalMes>=umbral){ pct=(PORC[t]||0)*100; comi = imp*(PORC[t]||0); }
+    return `<tr><td>${t}</td><td class="right">${fmt(imp)}</td><td class="right">${pct.toFixed(1)}%</td><td class="right">${fmt(comi)}</td></tr>`;
   }).join('');
 
-  resumenBox.innerHTML = `
-    <div class="chips">
-      <span class="pill">Jornadas: <b>${diasUnique}</b></span>
-      <span class="pill">Mínimo: <b>${fmt(minimo)}</b></span>
-      <span class="pill">Umbral: <b>${fmt(umbral)}</b></span>
-    </div>
-    <div class="alert ${clase}">${msg}</div>
-
+  tablaResumen.innerHTML = `
     <table>
       <thead><tr><th>Producto</th><th class="right">Importe</th><th class="right">% aplicado</th><th class="right">Comisión</th></tr></thead>
-      <tbody>${filas}</tbody>
+      <tbody>${filas || '<tr><td colspan="4" class="muted">Sin ventas</td></tr>'}</tbody>
       <tfoot>
-        <tr><td>Total mes</td><td class="right">${fmt(totalMes)}</td><td></td><td class="right">${fmt(comisionEstandar)}</td></tr>
+        <tr><td>Total comisión estándar</td><td></td><td></td><td class="right">${fmt(comiStd)}</td></tr>
         <tr><td>Extraordinarios</td><td class="right">${fmt(ce.total)}</td><td class="right">${(ce.pct*100).toFixed(0)}%</td><td class="right">${fmt(ce.comision)}</td></tr>
-        <tr><td colspan="3" class="right">Comisión total</td><td class="right">${fmt(comisionEstandar + ce.comision)}</td></tr>
+        <tr><td colspan="3" class="right"><b>Comisión total</b></td><td class="right"><b>${fmt(comiStd+ce.comision)}</b></td></tr>
       </tfoot>
     </table>
-    <div class="muted small">La comisión estándar se aplica solo si el total del mes supera el <b>umbral</b>.</div>
   `;
 }
 
-resumenBtn.addEventListener('click', resumenMensual);
-
-/* ------------------ Exportar / Limpiar ------------------ */
-exportBtn.addEventListener('click', ()=>{
-  const arr = loadHist();
-  if(!arr.length){ alert('No hay datos.'); return; }
-  const header = 'fecha,tipo,unidades,precio,importe\n';
-  const rows = arr.map(r=>{
-    const imp = (r.unidades*r.precio).toFixed(2);
-    return `${r.fecha},${r.tipo},${r.unidades},${r.precio},${imp}`;
-  }).join('\n');
-  const blob = new Blob([header+rows], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'ventas_once.csv';
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
+/* ===== PWA: instalación y SW ===== */
+let _deferredPrompt=null;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault(); _deferredPrompt = e; // guardamos el evento
+  document.getElementById('instalar').style.display='inline-block';
+});
+document.getElementById('instalar').addEventListener('click', async (e)=>{
+  e.preventDefault();
+  if(!_deferredPrompt) { alert('Si no aparece, ya está instalada o tu navegador no lo permite.'); return; }
+  _deferredPrompt.prompt();
+  await _deferredPrompt.userChoice;
+  _deferredPrompt=null;
 });
 
-clearBtn.addEventListener('click', ()=>{
-  if(confirm('¿Seguro que quieres borrar todo el historial guardado en este dispositivo?')){
-    localStorage.removeItem(LS_KEY);
-    renderHist();
-    resumenBox.innerHTML = '';
-  }
-});
-
-/* ------------------ PWA: registro de Service Worker (opcional) ------------------ */
 if('serviceWorker' in navigator){
-  // Intento de registro sin romper la app si no existe el archivo
-  fetch('./service-worker.js', {method:'HEAD'}).then(r=>{
-    if(r.ok){
-      navigator.serviceWorker.register('./service-worker.js')
-        .then(()=>console.log('SW registrado'))
-        .catch(()=>console.log('SW: registro fallido (ignorado)'));
-    }else{
-      console.log('SW no encontrado (404). Registro omitido.');
-    }
-  }).catch(()=>console.log('SW: fetch HEAD error (omitido)'));
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./service-worker.js')
+      .catch(()=>console.log('SW no registrado'));
+  });
 }
 </script>
 </body>
