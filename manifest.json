@@ -1,11 +1,11 @@
 {
-  "name": "Calculadora ONCE 2025",
+  "name": "Calculadora de Comisiones ONCE 2025",
   "short_name": "Calc ONCE",
-  "start_url": ".",
-  "scope": ".",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0b1220",
-  "theme_color": "#0ea5e9",
-  "description": "Calculadora de comisiones ONCE 2025 con mínimos, umbrales y tramos de comisión",
-  "icons": []
+  "theme_color": "#0d9488",
+  "lang": "es-ES",
+  "description": "Registra ventas día a día, calcula jornadas, mínimo, umbral y tramos por familia."
 }
