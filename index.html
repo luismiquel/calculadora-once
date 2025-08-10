@@ -1,380 +1,476 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Calculadora ONCE 2025</title>
-  <meta name="theme-color" content="#0ea5e9">
-  <link rel="manifest" href="manifest.json">
+  <title>Calculadora de Comisiones ONCE 2025</title>
+  <meta name="theme-color" content="#202124" />
+  <!-- PWA: usará tu manifest.json existente -->
+  <link rel="manifest" href="./manifest.json" />
   <style>
     :root{
-      --bg:#ffffff; --fg:#0b1220; --muted:#475569;
-      --card:#f1f5f9; --primary:#0ea5e9; --primary-2:#0369a1;
-      --ok:#16a34a; --warn:#f59e0b; --bad:#dc2626; --ring:#94a3b8;
+      --bg:#ffffff; --fg:#111; --card:#f4f4f4; --primary:#0b8457; --danger:#c0392b; --muted:#6b7280; --accent:#2563eb;
+      --table:#fafafa; --border:#e5e7eb;
     }
     [data-theme="dark"]{
-      --bg:#0b1220; --fg:#e5efff; --muted:#9fb3c8;
-      --card:#101a2c; --primary:#38bdf8; --primary-2:#7dd3fc;
-      --ok:#22c55e; --warn:#fbbf24; --bad:#f87171; --ring:#334155;
+      --bg:#121212; --fg:#f5f5f5; --card:#1d1f22; --primary:#2ecc71; --danger:#ff6b6b; --muted:#a1a1aa; --accent:#60a5fa;
+      --table:#16181b; --border:#2a2d31;
     }
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,arial,Segoe UI,Roboto,sans-serif}
-    header{padding:16px 12px}
-    h1{margin:0 0 8px;color:var(--primary);font-size:1.35rem;text-align:center}
-    .toolbar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-    .btn{padding:10px 12px;border-radius:8px;border:1px solid var(--ring);background:var(--card);color:var(--fg);cursor:pointer}
-    .btn.primary{background:var(--primary);color:#fff;border:none}
-    .btn.danger{background:var(--bad);color:#fff;border:none}
-    .wrap{max-width:940px;margin:0 auto;padding:0 12px 28px}
-    .card{background:var(--card);border:1px solid var(--ring);border-radius:12px;padding:12px;margin-top:12px}
-    .grid{display:grid;grid-template-columns:1fr;gap:10px}
-    @media(min-width:720px){.grid{grid-template-columns:1.1fr 1fr}}
-    label{font-size:.9rem;color:var(--muted)}
-    select,input{width:100%;padding:10px;border:1px solid var(--ring);border-radius:8px;background:var(--bg);color:var(--fg)}
-    table{width:100%;border-collapse:collapse;margin-top:10px}
-    th,td{border-bottom:1px solid var(--ring);padding:8px;font-size:.95rem}
-    th{text-align:left;color:var(--muted)}
-    .pill{display:inline-block;padding:.25rem .5rem;border-radius:999px;font-size:.8rem}
-    .pill.ok{background:color-mix(in oklab, var(--ok) 18%, transparent);color:var(--ok)}
-    .pill.warn{background:color-mix(in oklab, var(--warn) 18%, transparent);color:var(--warn)}
-    .pill.bad{background:color-mix(in oklab, var(--bad) 18%, transparent);color:var(--bad)}
-    .totales{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px}
-    @media(min-width:620px){.totales{grid-template-columns:1fr 1fr}}
-    .kpi{border:1px dashed var(--ring);border-radius:10px;padding:10px}
-    .kpi h3{margin:0 0 4px;font-size:1rem;color:var(--muted)}
-    .kpi b{font-size:1.15rem}
-    footer{padding:16px;text-align:center;color:var(--muted);font-size:.9rem}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--fg)}
+    header{display:flex;gap:.5rem;align-items:center;justify-content:space-between;padding:1rem;border-bottom:1px solid var(--border)}
+    h1{font-size:1.1rem;margin:0}
+    .wrap{max-width:920px;margin:0 auto;padding:1rem}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:.75rem}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem}
+    label{font-size:.85rem;color:var(--muted)}
+    input,select,button{width:100%;padding:.7rem;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--fg)}
+    button{cursor:pointer;border:0}
+    .btn{background:var(--accent);color:#fff}
+    .btn-sec{background:transparent;color:var(--fg);border:1px solid var(--border)}
+    .btn-danger{background:var(--danger);color:#fff}
+    table{width:100%;border-collapse:collapse;background:var(--table);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    th,td{padding:.6rem;border-bottom:1px solid var(--border);text-align:left;font-size:.92rem}
+    th{background:var(--card);color:var(--muted);font-weight:600}
+    tfoot td{font-weight:700}
+    .pill{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--border);padding:.25rem .5rem;border-radius:999px;font-size:.8rem}
+    .ok{color:#0ea5e9}
+    .warn{color:#f59e0b}
+    .good{color:#10b981}
+    .bad{color:#ef4444}
+    .row{display:flex;gap:.5rem;flex-wrap:wrap}
+    .row>*{flex:1}
+    .r{text-align:right}
+    .muted{color:var(--muted)}
+    .hide{display:none}
+    @media (max-width:720px){
+      .grid{grid-template-columns:1fr}
+      header{flex-wrap:wrap;gap:.75rem}
+    }
   </style>
 </head>
 <body>
-  <header class="wrap">
-    <h1>Calculadora de Comisiones ONCE 2025</h1>
-    <div class="toolbar">
-      <button class="btn" id="toggleTema">🌗 Tema</button>
-      <button class="btn" id="btnExportar">⬇️ Exportar JSON</button>
-      <input id="fileImport" type="file" accept="application/json" hidden>
-      <button class="btn" id="btnImportar">⬆️ Importar JSON</button>
-      <button class="btn danger" id="btnReset">🗑️ Borrar todo</button>
-    </div>
-  </header>
+<header>
+  <h1>Calculadora de Comisiones ONCE 2025</h1>
+  <div class="row" style="max-width:420px">
+    <button id="darkBtn" class="btn-sec" type="button">🌗 Modo oscuro</button>
+    <button id="installBtn" class="btn" type="button" title="Instalar (PWA)">⬇️ Instalar</button>
+  </div>
+</header>
 
-  <main class="wrap">
+<div class="wrap">
+
+  <!-- Filtros Mes/Año -->
+  <div class="card">
     <div class="grid">
-      <!-- Entrada diaria -->
-      <section class="card">
-        <h2 style="margin:0 0 8px">➕ Añadir ventas del día</h2>
-        <div class="grid" style="grid-template-columns:1fr 1fr;gap:8px">
-          <div>
-            <label>Fecha</label>
-            <input type="date" id="fecha">
-          </div>
-          <div>
-            <label>Producto</label>
-            <select id="producto"></select>
-          </div>
-          <div>
-            <label>Unidades vendidas</label>
-            <input type="number" id="unidades" min="0" step="1" value="0">
-          </div>
-          <div>
-            <label>Precio por unidad (€)</label>
-            <input type="number" id="precio" step="0.1" min="0">
-          </div>
-        </div>
-        <div class="toolbar" style="justify-content:flex-end;margin-top:8px">
-          <button class="btn primary" id="btnAgregar">Añadir</button>
-        </div>
-        <small style="color:var(--muted)">Las ventas se guardan automáticamente en tu dispositivo.</small>
-      </section>
+      <div class="col" style="grid-column:span 6">
+        <label>Mes</label>
+        <select id="mesSel"></select>
+      </div>
+      <div class="col" style="grid-column:span 6">
+        <label>Año</label>
+        <select id="anioSel"></select>
+      </div>
+    </div>
+  </div>
 
-      <!-- Filtros y resumen -->
-      <section class="card">
-        <h2 style="margin:0 0 8px">📅 Filtro y estado</h2>
-        <div class="grid" style="grid-template-columns:1fr 1fr;gap:8px">
-          <div>
-            <label>Mes</label>
-            <input type="month" id="mesFiltro">
-          </div>
-          <div>
-            <label>Estado umbral</label><br>
-            <span id="estadoPill" class="pill">—</span>
-          </div>
-        </div>
+  <!-- Alta de venta diaria -->
+  <div class="card">
+    <h2 style="margin-top:0;font-size:1rem">Añadir venta diaria</h2>
+    <div class="grid">
+      <div class="col" style="grid-column:span 4">
+        <label>Fecha</label>
+        <input id="fecha" type="date" />
+      </div>
+      <div class="col" style="grid-column:span 4">
+        <label>Producto</label>
+        <select id="producto">
+          <optgroup label="Sorteos diarios">
+            <option value="diario">Diario (2€)</option>
+            <option value="cuponazo">Cuponazo (3€)</option>
+            <option value="sueldazo">Sueldazo (2€)</option>
+          </optgroup>
+          <optgroup label="Rascas">
+            <option value="rasca">Rasca (1–10€)</option>
+          </optgroup>
+          <optgroup label="Activos">
+            <option value="triplex">Triplex (0.5€)</option>
+            <option value="superonce">Super Once (1€)</option>
+            <option value="midia">Mi Día (1€)</option>
+            <option value="eurojackpot">Eurojackpot (2€)</option>
+          </optgroup>
+          <optgroup label="Especiales">
+            <option value="extra">Extraordinario (tramos)</option>
+            <option value="otros">Otros</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="col" style="grid-column:span 4">
+        <label>Unidades vendidas</label>
+        <input id="unidades" type="number" min="0" step="1" value="0"/>
+      </div>
 
-        <div class="totales">
-          <div class="kpi">
-            <h3>Jornadas (días con ventas)</h3>
-            <b id="kpiJornadas">0</b>
-          </div>
-          <div class="kpi">
-            <h3>Ventas (€)</h3>
-            <b id="kpiVentas">0.00 €</b>
-          </div>
-          <div class="kpi">
-            <h3>Mínimo</h3>
-            <b id="kpiMinimo">0.00 €</b>
-          </div>
-          <div class="kpi">
-            <h3>Umbral</h3>
-            <b id="kpiUmbral">0.00 €</b>
-          </div>
-          <div class="kpi">
-            <h3>Comisión estimada</h3>
-            <b id="kpiComision">0.00 €</b>
-          </div>
-        </div>
-      </section>
+      <div class="col" style="grid-column:span 4">
+        <label>Precio (€)</label>
+        <input id="precio" type="number" min="0" step="0.1" value="2"/>
+      </div>
+      <div class="col" style="grid-column:span 8">
+        <label>Nota (opcional)</label>
+        <input id="nota" type="text" placeholder="ej: lunes mañana, zona centro…"/>
+      </div>
     </div>
 
-    <!-- Tabla de ventas -->
-    <section class="card">
-      <h2 style="margin:0 0 8px">📒 Ventas registradas</h2>
+    <div class="row" style="margin-top:.75rem">
+      <button id="addBtn" class="btn" type="button">➕ Añadir</button>
+      <button id="csvBtn" class="btn-sec" type="button">⬇️ Exportar CSV</button>
+      <button id="limpiarBtn" class="btn-danger" type="button" title="Borra sólo el mes seleccionado">🗑️ Borrar mes</button>
+    </div>
+  </div>
+
+  <!-- Tabla de ventas -->
+  <div class="card">
+    <h2 style="margin-top:0;font-size:1rem">Ventas del mes</h2>
+    <div class="muted" id="infoDias"></div>
+    <div style="overflow:auto">
       <table id="tabla">
         <thead>
           <tr>
-            <th style="width:130px">Fecha</th>
-            <th>Producto</th>
-            <th style="text-align:right">Unidades</th>
-            <th style="text-align:right">Precio (€)</th>
-            <th style="text-align:right">Importe (€)</th>
-            <th style="text-align:right">Acciones</th>
+            <th>Fecha</th><th>Producto</th><th class="r">Unid.</th><th class="r">Precio</th><th class="r">Importe</th><th>Nota</th><th></th>
           </tr>
         </thead>
-        <tbody id="tbody"></tbody>
+        <tbody></tbody>
         <tfoot>
-          <tr>
-            <th colspan="4" style="text-align:right">Total</th>
-            <th id="tfootTotal" style="text-align:right">0.00 €</th>
-            <th></th>
-          </tr>
+          <tr><td colspan="4" class="r">Total mes (€)</td><td class="r" id="totalMes">0,00</td><td colspan="2"></td></tr>
         </tfoot>
       </table>
-    </section>
-  </main>
+    </div>
+  </div>
 
-  <footer>
-    <small>ONCE 2025 · Cálculo basado en tabla accesible: <b>Mínimo = 142 €/día</b> · <b>Umbral = 210 €/día</b>. Las comisiones se aplican si superas el umbral.</small>
-  </footer>
+  <!-- Resumen y comisión -->
+  <div class="card">
+    <h2 style="margin-top:0;font-size:1rem">Resumen y comisión</h2>
+    <div class="grid">
+      <div class="col" style="grid-column:span 12">
+        <div class="row">
+          <span class="pill">Días trabajados: <strong id="diasTrab">0</strong></span>
+          <span class="pill">Mínimo: <strong id="minimo">0,00 €</strong></span>
+          <span class="pill">Umbral: <strong id="umbral">0,00 €</strong></span>
+          <span class="pill">Estado: <strong id="estado" class="warn">Sin comisión</strong></span>
+        </div>
+      </div>
 
-  <script>
-    // ------- Catálogo de productos, precios por defecto y % comisión (si supera umbral)
-    const PRODUCTOS = {
-      diario:        { nombre: "Diario",        precio: 2,   pct: 0.077 },
-      cuponazo:      { nombre: "Cuponazo",      precio: 3,   pct: 0.077 },
-      sueldazo:      { nombre: "Sueldazo",      precio: 2,   pct: 0.077 },
-      rasca:         { nombre: "Rasca",         precio: 1,   pct: 0.065 },
-      triplex:       { nombre: "Triples",       precio: 0.5, pct: 0.05  },
-      superonce:     { nombre: "Super Once",    precio: 1,   pct: 0.05  },
-      midia:         { nombre: "Mi Día",        precio: 1,   pct: 0.05  },
-      eurojackpot:   { nombre: "Eurojackpot",   precio: 2,   pct: 0.05  },
-      extraordinario:{ nombre: "Extraordinario",precio: 2.5, pct: 0.10  },
-      resto:         { nombre: "Otros",         precio: 1.5, pct: 0.04  }
-    };
+      <div class="col" style="grid-column:span 12;margin-top:.5rem">
+        <div id="resumenProductos" class="muted"></div>
+      </div>
 
-    // ------- Estado (persistente en localStorage)
-    const LS_KEY = "ventas_once_2025";
-    let ventas = cargarVentas(); // { id, fecha (YYYY-MM-DD), producto, unidades, precio }
+      <div class="col" style="grid-column:span 12;margin-top:.5rem">
+        <div class="row">
+          <div class="card" style="flex:1">
+            <div class="muted">Comisión productos estándar*</div>
+            <div style="font-size:1.4rem"><strong id="comisionStd">0,00 €</strong></div>
+            <div class="muted" style="font-size:.8rem">*Diario, Cuponazo, Sueldazo, Rascas y Activos. Sólo si superas <b>Umbral</b>.</div>
+          </div>
+          <div class="card" style="flex:1">
+            <div class="muted">Comisión Extraordinarios (tramos)</div>
+            <div style="font-size:1.4rem"><strong id="comisionExtra">0,00 €</strong></div>
+            <div class="muted" style="font-size:.8rem">12% [1–199], 13% [200–299], 14% [300–399], 15% [400–499], 16% [500–599], 17% [≥600].</div>
+          </div>
+          <div class="card" style="flex:1">
+            <div class="muted">Comisión total estimada</div>
+            <div style="font-size:1.6rem;color:var(--primary)"><strong id="comisionTotal">0,00 €</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    // ------- UI init
-    const $ = s => document.querySelector(s);
-    const elFecha = $("#fecha");
-    const elProd  = $("#producto");
-    const elUnid  = $("#unidades");
-    const elPrec  = $("#precio");
-    const elMes   = $("#mesFiltro");
-    const elTbody = $("#tbody");
-    const elTfoot = $("#tfootTotal");
-    const elPill  = $("#estadoPill");
+</div>
 
-    const kpiJornadas = $("#kpiJornadas");
-    const kpiVentas   = $("#kpiVentas");
-    const kpiMinimo   = $("#kpiMinimo");
-    const kpiUmbral   = $("#kpiUmbral");
-    const kpiComision = $("#kpiComision");
+<script>
+/* ====== Config básica ====== */
+const PRODUCTOS = {
+  diario:      {nombre:"Diario",      precio:2,   tipo:"std", pct:0.077},
+  cuponazo:    {nombre:"Cuponazo",    precio:3,   tipo:"std", pct:0.077},
+  sueldazo:    {nombre:"Sueldazo",    precio:2,   tipo:"std", pct:0.077},
+  rasca:       {nombre:"Rasca",       precio:1,   tipo:"std", pct:0.065}, // puedes cambiar precio al cargar
+  triplex:     {nombre:"Triplex",     precio:0.5, tipo:"std", pct:0.05},
+  superonce:   {nombre:"Super Once",  precio:1,   tipo:"std", pct:0.05},
+  midia:       {nombre:"Mi Día",      precio:1,   tipo:"std", pct:0.05},
+  eurojackpot: {nombre:"Eurojackpot", precio:2,   tipo:"std", pct:0.05},
+  extra:       {nombre:"Extraordinario", precio:2.5, tipo:"extra"}, // precio libre por sorteo
+  otros:       {nombre:"Otros", precio:1.5, tipo:"std", pct:0.04}
+};
 
-    // Rellenar select productos
-    elProd.innerHTML = Object.entries(PRODUCTOS)
-      .map(([k,v]) => `<option value="${k}">${v.nombre}</option>`).join("");
-    autocompletarPrecio();
+// Tabla oficial Mínimo/Umbral 2025 (1–25 jornadas)
+const TABLA_MU = {
+  1:{min:142, umbral:210},
+  2:{min:284, umbral:420},
+  3:{min:426, umbral:630},
+  4:{min:568, umbral:840},
+  5:{min:710, umbral:1050},
+  6:{min:852, umbral:1260},
+  7:{min:994, umbral:1470},
+  8:{min:1136, umbral:1680},
+  9:{min:1278, umbral:1890},
+ 10:{min:1420, umbral:2100},
+ 11:{min:1562, umbral:2310},
+ 12:{min:1704, umbral:2520},
+ 13:{min:1846, umbral:2730},
+ 14:{min:1988, umbral:2940},
+ 15:{min:2130, umbral:3150},
+ 16:{min:2272, umbral:3360},
+ 17:{min:2414, umbral:3570},
+ 18:{min:2556, umbral:3780},
+ 19:{min:2698, umbral:3990},
+ 20:{min:2840, umbral:4200},
+ 21:{min:2982, umbral:4410},
+ 22:{min:3124, umbral:4620},
+ 23:{min:3266, umbral:4830},
+ 24:{min:3408, umbral:5040},
+ 25:{min:3550, umbral:5250}
+};
 
-    // Fecha por defecto: hoy
-    elFecha.value = new Date().toISOString().slice(0,10);
-    elMes.value = new Date().toISOString().slice(0,7);
+// Tramos extraordinario (por Nº cupones Extra)
+function pctExtraord(unidades){
+  if (unidades>=600) return 0.17;
+  if (unidades>=500) return 0.16;
+  if (unidades>=400) return 0.15;
+  if (unidades>=300) return 0.14;
+  if (unidades>=200) return 0.13;
+  if (unidades>=1)   return 0.12;
+  return 0;
+}
 
-    // ------- Eventos
-    $("#toggleTema").onclick = () => {
-      const html = document.documentElement;
-      html.dataset.theme = html.dataset.theme === "dark" ? "light" : "dark";
-      localStorage.setItem("theme_once", html.dataset.theme);
-    };
-    (function initTema(){
-      const t = localStorage.getItem("theme_once");
-      if (t) document.documentElement.dataset.theme = t;
-    })();
+/* ====== Estado & utilidades ====== */
+const $ = sel => document.querySelector(sel);
+const storageKey = "once-ventas-2025";
+const hoy = new Date();
 
-    $("#btnAgregar").onclick = () => {
-      const fecha = elFecha.value;
-      const producto = elProd.value;
-      const unidades = parseInt(elUnid.value || "0", 10);
-      const precio = parseFloat(elPrec.value || "0");
-      if (!fecha) return alert("Selecciona fecha");
-      if (unidades <= 0) return alert("Indica unidades > 0");
-      if (precio <= 0) return alert("Precio inválido");
+function fmt(n){ return n.toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function yyyymm(d){ return d.toISOString().slice(0,7); }
+function parseDateInput(v){ return v ? new Date(v+"T00:00:00") : new Date(); }
 
-      ventas.push({ id: crypto.randomUUID(), fecha, producto, unidades, precio });
-      guardarVentas();
-      elUnid.value = 0;
-      render();
-    };
+// Carga/guarda almacenamiento
+function loadAll(){ try{ return JSON.parse(localStorage.getItem(storageKey) || "{}"); }catch{ return {}; } }
+function saveAll(data){ localStorage.setItem(storageKey, JSON.stringify(data)); }
 
-    $("#btnReset").onclick = () => {
-      if (confirm("¿Borrar TODAS las ventas guardadas?")) {
-        ventas = [];
-        guardarVentas();
-        render();
-      }
-    };
+// Obtiene array ventas para (yyyy-mm)
+function getMes(ym){
+  const all = loadAll();
+  return Array.isArray(all[ym]) ? all[ym] : [];
+}
+function setMes(ym, arr){
+  const all = loadAll();
+  all[ym] = arr;
+  saveAll(all);
+}
 
-    $("#btnExportar").onclick = () => {
-      const blob = new Blob([JSON.stringify(ventas, null, 2)], {type:"application/json"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "ventas_once_2025.json";
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
-    };
+// Mes/año selects
+function rellenarMesAnio(){
+  const mesSel = $("#mesSel"), anioSel=$("#anioSel");
+  const meses = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+  mesSel.innerHTML = meses.map(m=>`<option value="${m}">${m}</option>`).join("");
+  const y = hoy.getFullYear();
+  const ys = [y-1, y, y+1];
+  anioSel.innerHTML = ys.map(a=>`<option value="${a}">${a}</option>`).join("");
+  mesSel.value = hoy.toISOString().slice(5,7);
+  anioSel.value = String(y);
+}
 
-    $("#btnImportar").onclick = () => $("#fileImport").click();
-    $("#fileImport").onchange = e => {
-      const f = e.target.files[0];
-      if (!f) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const data = JSON.parse(reader.result);
-          if (!Array.isArray(data)) throw new Error("Formato inválido");
-          ventas = data;
-          guardarVentas();
-          render();
-        } catch(err){
-          alert("JSON inválido: " + err.message);
-        }
-      };
-      reader.readAsText(f);
-      e.target.value = "";
-    };
+function ymActual(){ return `${$("#anioSel").value}-${$("#mesSel").value}`; }
 
-    elProd.onchange = autocompletarPrecio;
-    elMes.onchange = render;
+/* ====== UI lógica principal ====== */
+function autocompletarPrecio(){
+  const prod = $("#producto").value;
+  const p = PRODUCTOS[prod];
+  $("#precio").value = p ? p.precio : 1;
+}
 
-    function autocompletarPrecio(){
-      const p = PRODUCTOS[elProd.value];
-      if (p) elPrec.value = p.precio;
+function addVenta(){
+  const fecha = $("#fecha").value;
+  const producto = $("#producto").value;
+  const unidades = parseInt($("#unidades").value || "0", 10);
+  const precio = parseFloat($("#precio").value || "0");
+  const nota = $("#nota").value.trim();
+
+  if(!fecha) return alert("Selecciona una fecha.");
+  if(unidades<=0) return alert("Indica unidades vendidas (>0).");
+  if(precio<=0) return alert("El precio debe ser mayor que 0.");
+
+  const ym = ymActual();
+  const ventas = getMes(ym);
+  ventas.push({fecha, producto, unidades, precio, nota});
+  // ordenar por fecha asc
+  ventas.sort((a,b)=> a.fecha.localeCompare(b.fecha));
+  setMes(ym, ventas);
+
+  // limpiar inputs (menos producto)
+  $("#unidades").value = 0;
+  $("#nota").value = "";
+  render();
+}
+
+function delVenta(idx){
+  const ym = ymActual();
+  const ventas = getMes(ym);
+  ventas.splice(idx,1);
+  setMes(ym, ventas);
+  render();
+}
+
+function exportCSV(){
+  const ym = ymActual();
+  const ventas = getMes(ym);
+  if(!ventas.length){ alert("No hay datos para exportar."); return; }
+  const encabezado = ["fecha","producto","nombre","unidades","precio","importe","nota"];
+  const filas = ventas.map(v=>{
+    const def = PRODUCTOS[v.producto]||{nombre:v.producto};
+    const imp = v.unidades * v.precio;
+    return [v.fecha, v.producto, def.nombre||v.producto, v.unidades, v.precio.toFixed(2), imp.toFixed(2), (v.nota||"").replaceAll('"','""')];
+  });
+  const csv = [encabezado, ...filas].map(r=>r.map(x=>`"${x}"`).join(",")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `ventas_${ym}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function limpiarMes(){
+  if(!confirm("¿Seguro que quieres borrar todas las ventas del mes seleccionado?")) return;
+  const ym = ymActual();
+  setMes(ym, []);
+  render();
+}
+
+function render(){
+  const ym = ymActual();
+  const ventas = getMes(ym);
+  // tabla
+  const tbody = $("#tabla tbody");
+  tbody.innerHTML = "";
+  let totalMes = 0;
+
+  ventas.forEach((v, i)=>{
+    const importe = v.unidades * v.precio;
+    totalMes += importe;
+    const tr = document.createElement("tr");
+    const nombre = (PRODUCTOS[v.producto]?.nombre)||v.producto;
+    tr.innerHTML = `
+      <td>${v.fecha}</td>
+      <td>${nombre}</td>
+      <td class="r">${v.unidades}</td>
+      <td class="r">${fmt(v.precio)}</td>
+      <td class="r">${fmt(importe)}</td>
+      <td>${v.nota||""}</td>
+      <td class="r"><button class="btn-danger" onclick="delVenta(${i})">Eliminar</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  $("#totalMes").textContent = fmt(totalMes);
+
+  // días trabajados (fechas únicas con alguna venta)
+  const dias = new Set(ventas.map(v=>v.fecha)).size;
+  $("#diasTrab").textContent = dias;
+
+  // mínimo/umbral
+  const mu = TABLA_MU[Math.min(dias,25)] || {min:0, umbral:0};
+  $("#minimo").textContent = fmt(mu.min);
+  $("#umbral").textContent = fmt(mu.umbral);
+
+  // resumen por producto (importe y unidades)
+  const porProducto = {};
+  ventas.forEach(v=>{
+    const key = v.producto;
+    porProducto[key] ??= {unid:0, importe:0, precio:v.precio};
+    porProducto[key].unid += v.unidades;
+    porProducto[key].importe += v.unidades * v.precio;
+  });
+  const resDiv = $("#resumenProductos");
+  resDiv.innerHTML = Object.entries(porProducto).map(([k,info])=>{
+    const def = PRODUCTOS[k]||{nombre:k};
+    return `<div>• <b>${def.nombre||k}</b>: ${info.unid} unid · ${fmt(info.importe)} €</div>`;
+  }).join("") || "<span class='muted'>Sin ventas registradas.</span>";
+
+  // comisión estándar (si totalMes >= umbral)
+  let comStd = 0;
+  if (totalMes >= (mu.umbral||Infinity)){
+    for(const [k,info] of Object.entries(porProducto)){
+      const def = PRODUCTOS[k];
+      if(!def || def.tipo!=="std") continue;
+      comStd += info.importe * (def.pct||0);
     }
+    $("#estado").textContent = "Con comisión (superado Umbral)";
+    $("#estado").className = "good";
+  }else{
+    $("#estado").textContent = totalMes >= (mu.min||Infinity) ? "Mínimo superado, sin comisión" : "Sin mínimo";
+    $("#estado").className = totalMes >= (mu.min||Infinity) ? "warn" : "bad";
+  }
+  $("#comisionStd").textContent = fmt(comStd);
 
-    function cargarVentas(){
-      try {
-        const raw = localStorage.getItem(LS_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch { return []; }
-    }
-    function guardarVentas(){
-      localStorage.setItem(LS_KEY, JSON.stringify(ventas));
-    }
+  // comisión extraordinarios (tramos por nº cupones del propio extraordinario)
+  const vExtra = porProducto["extra"];
+  let comExtra = 0;
+  if(vExtra){
+    const pct = pctExtraord(vExtra.unid);
+    comExtra = vExtra.importe * pct;
+  }
+  $("#comisionExtra").textContent = fmt(comExtra);
 
-    // ------- Cálculos
-    function filtrarPorMes(yyyyMM){
-      return ventas.filter(v => v.fecha.slice(0,7) === yyyyMM);
-    }
-    function totalEuros(lista){
-      return lista.reduce((s,v) => s + v.unidades * v.precio, 0);
-    }
-    function jornadas(lista){
-      return new Set(lista.map(v => v.fecha)).size; // días con cualquier venta
-    }
-    function minimo(dias){ return dias * 142; }
-    function umbral(dias){ return dias * 210; }
+  // total
+  $("#comisionTotal").textContent = fmt(comStd + comExtra);
 
-    function comisionPorProducto(lista, superoUmbral){
-      // Si NO se supera el umbral: 0 comisión
-      if (!superoUmbral) return { total: 0, detalle: {} };
+  // info días
+  $("#infoDias").innerHTML = `
+    Días con venta: <b>${dias}</b> • Total vendido: <b>${fmt(totalMes)} €</b>
+  `;
+}
 
-      // Comisión se calcula por cada línea usando el % de su producto
-      const detalle = {};
-      let total = 0;
-      for (const v of lista){
-        const pct = PRODUCTOS[v.producto]?.pct ?? 0.04;
-        const base = v.unidades * v.precio;
-        const c = base * pct;
-        total += c;
-        detalle[v.producto] = (detalle[v.producto] || 0) + c;
-      }
-      return { total, detalle };
-    }
+/* ====== Tema oscuro ====== */
+function aplicarTema(base){
+  const tema = base ?? localStorage.getItem("once-tema") ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.dataset.theme = tema;
+  localStorage.setItem("once-tema", tema);
+}
+$("#darkBtn").addEventListener("click", ()=> aplicarTema(document.documentElement.dataset.theme==="dark"?"light":"dark"));
 
-    function estadoPill(total, min, umb){
-      if (total >= umb) return { clase:"ok", txt:"✅ Umbral superado (con comisión)" };
-      if (total >= min) return { clase:"warn", txt:"⚠️ Mínimo superado (sin comisión)" };
-      return { clase:"bad", txt:"❌ Mínimo NO alcanzado" };
-    }
+/* ====== PWA ====== */
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", (e)=>{
+  deferredPrompt = e; // no preventDefault: dejamos que el navegador decida si mostrar banner
+});
+$("#installBtn").addEventListener("click", async ()=>{
+  if(!deferredPrompt) { alert("Si tu navegador lo permite, podrás instalarla desde el menú del navegador."); return; }
+  deferredPrompt.prompt();
+  deferredPrompt = null;
+});
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+  });
+}
 
-    // ------- Render
-    function render(){
-      const yyyyMM = elMes.value;
-      const lista = filtrarPorMes(yyyyMM).sort((a,b) => (a.fecha < b.fecha ? -1:1));
+/* ====== Eventos UI ====== */
+$("#producto").addEventListener("change", autocompletarPrecio);
+$("#addBtn").addEventListener("click", addVenta);
+$("#csvBtn").addEventListener("click", exportCSV);
+$("#limpiarBtn").addEventListener("click", limpiarMes);
+$("#mesSel").addEventListener("change", render);
+$("#anioSel").addEventListener("change", render);
 
-      // Tabla
-      elTbody.innerHTML = lista.map(v => {
-        const prod = PRODUCTOS[v.producto]?.nombre || v.producto;
-        const imp = (v.unidades * v.precio).toFixed(2);
-        return `<tr>
-          <td>${v.fecha}</td>
-          <td>${prod}</td>
-          <td style="text-align:right">${v.unidades}</td>
-          <td style="text-align:right">${v.precio.toFixed(2)}</td>
-          <td style="text-align:right">${imp}</td>
-          <td style="text-align:right">
-            <button class="btn" onclick="eliminar('${v.id}')">Eliminar</button>
-          </td>
-        </tr>`;
-      }).join("");
-
-      const total = totalEuros(lista);
-      elTfoot.textContent = total.toFixed(2) + " €";
-
-      const dias = jornadas(lista);
-      const min = minimo(dias);
-      const umb = umbral(dias);
-      const pill = estadoPill(total, min, umb);
-      elPill.className = "pill " + pill.clase;
-      elPill.textContent = pill.txt;
-
-      const { total: comi } = comisionPorProducto(lista, total >= umb);
-
-      kpiJornadas.textContent = dias;
-      kpiVentas.textContent   = total.toFixed(2) + " €";
-      kpiMinimo.textContent   = min.toFixed(2) + " €";
-      kpiUmbral.textContent   = umb.toFixed(2) + " €";
-      kpiComision.textContent = comi.toFixed(2) + " €";
-    }
-
-    window.eliminar = function(id){
-      if (!confirm("¿Eliminar esta línea?")) return;
-      ventas = ventas.filter(v => v.id !== id);
-      guardarVentas();
-      render();
-    };
-
-    // ------- PWA
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js")
-        .then(() => console.log("SW registrado"))
-        .catch((e) => console.log("SW error", e));
-    }
-
-    // Primer pintado
-    render();
-  </script>
+/* ====== Init ====== */
+(function init(){
+  rellenarMesAnio();
+  // fecha por defecto = hoy del mes/año elegidos
+  const ym = ymActual();
+  const [yy,mm] = ym.split("-");
+  const d = new Date(); d.setFullYear(+yy, +mm-1, Math.min(d.getDate(), 28));
+  $("#fecha").value = d.toISOString().slice(0,10);
+  autocompletarPrecio();
+  aplicarTema();
+  render();
+})();
+</script>
 </body>
 </html>
