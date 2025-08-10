@@ -3,474 +3,456 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Calculadora de Comisiones ONCE 2025</title>
-  <meta name="theme-color" content="#202124" />
-  <!-- PWA: usará tu manifest.json existente -->
+  <title>Calculadora ONCE 2025</title>
+  <meta name="theme-color" content="#0f766e" />
+  <!-- PWA (ya tienes manifest y SW en el repo) -->
   <link rel="manifest" href="./manifest.json" />
   <style>
     :root{
-      --bg:#ffffff; --fg:#111; --card:#f4f4f4; --primary:#0b8457; --danger:#c0392b; --muted:#6b7280; --accent:#2563eb;
-      --table:#fafafa; --border:#e5e7eb;
+      --bg:#ffffff;--fg:#0f172a;--muted:#64748b;--card:#f1f5f9;
+      --ok:#16a34a;--warn:#d97706;--bad:#dc2626;--primary:#0f766e;
+      --chip:#e2e8f0;
     }
     [data-theme="dark"]{
-      --bg:#121212; --fg:#f5f5f5; --card:#1d1f22; --primary:#2ecc71; --danger:#ff6b6b; --muted:#a1a1aa; --accent:#60a5fa;
-      --table:#16181b; --border:#2a2d31;
+      --bg:#0b1220;--fg:#e5e7eb;--muted:#9ca3af;--card:#0f172a;
+      --ok:#22c55e;--warn:#f59e0b;--bad:#f87171;--primary:#22d3ee;
+      --chip:#111827;
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--fg)}
-    header{display:flex;gap:.5rem;align-items:center;justify-content:space-between;padding:1rem;border-bottom:1px solid var(--border)}
-    h1{font-size:1.1rem;margin:0}
-    .wrap{max-width:920px;margin:0 auto;padding:1rem}
-    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:.75rem}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem}
-    label{font-size:.85rem;color:var(--muted)}
-    input,select,button{width:100%;padding:.7rem;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--fg)}
-    button{cursor:pointer;border:0}
-    .btn{background:var(--accent);color:#fff}
-    .btn-sec{background:transparent;color:var(--fg);border:1px solid var(--border)}
-    .btn-danger{background:var(--danger);color:#fff}
-    table{width:100%;border-collapse:collapse;background:var(--table);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-    th,td{padding:.6rem;border-bottom:1px solid var(--border);text-align:left;font-size:.92rem}
-    th{background:var(--card);color:var(--muted);font-weight:600}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial,sans-serif;background:var(--bg);color:var(--fg)}
+    header{display:flex;gap:.5rem;align-items:center;justify-content:space-between;padding:1rem;position:sticky;top:0;background:var(--bg);border-bottom:1px solid #0001}
+    h1{font-size:1.15rem;margin:0;color:var(--primary)}
+    main{max-width:1100px;margin:0 auto;padding:1rem;display:grid;gap:1rem}
+    .card{background:var(--card);border-radius:12px;padding:1rem}
+    .row{display:flex;gap:.75rem;flex-wrap:wrap}
+    .row > div{flex:1 1 160px}
+    label{display:block;font-weight:600;margin-bottom:.25rem}
+    input,select,button,textarea{width:100%;padding:.65rem .75rem;border-radius:10px;border:1px solid #0002;background:#fff}
+    [data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{background:#0b1220;color:var(--fg);border-color:#fff1}
+    button{cursor:pointer;border:none;background:var(--primary);color:#001b1b;font-weight:700}
+    .ghost{background:transparent;border:1px solid #0002;color:var(--fg)}
+    .muted{color:var(--muted);font-size:.9rem}
+    table{width:100%;border-collapse:collapse;font-size:.95rem}
+    th,td{padding:.55rem .5rem;border-bottom:1px dashed #0002;text-align:right}
+    th:first-child, td:first-child{text-align:left}
     tfoot td{font-weight:700}
-    .pill{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--border);padding:.25rem .5rem;border-radius:999px;font-size:.8rem}
-    .ok{color:#0ea5e9}
-    .warn{color:#f59e0b}
-    .good{color:#10b981}
-    .bad{color:#ef4444}
-    .row{display:flex;gap:.5rem;flex-wrap:wrap}
-    .row>*{flex:1}
-    .r{text-align:right}
-    .muted{color:var(--muted)}
-    .hide{display:none}
-    @media (max-width:720px){
-      .grid{grid-template-columns:1fr}
-      header{flex-wrap:wrap;gap:.75rem}
-    }
+    .chips{display:flex;gap:.4rem;flex-wrap:wrap}
+    .chip{background:var(--chip);padding:.25rem .5rem;border-radius:999px;font-size:.8rem}
+    .status{font-weight:800;display:inline-block;padding:.25rem .5rem;border-radius:8px}
+    .ok{background:color-mix(in oklab, var(--ok) 25%, transparent)}
+    .warn{background:color-mix(in oklab, var(--warn) 25%, transparent)}
+    .bad{background:color-mix(in oklab, var(--bad) 25%, transparent)}
+    .right{display:flex;gap:.5rem;align-items:center}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    @media (max-width:800px){.grid-2{grid-template-columns:1fr}}
+    .small{font-size:.85rem}
   </style>
 </head>
 <body>
-<header>
-  <h1>Calculadora de Comisiones ONCE 2025</h1>
-  <div class="row" style="max-width:420px">
-    <button id="darkBtn" class="btn-sec" type="button">🌗 Modo oscuro</button>
-    <button id="installBtn" class="btn" type="button" title="Instalar (PWA)">⬇️ Instalar</button>
-  </div>
-</header>
-
-<div class="wrap">
-
-  <!-- Filtros Mes/Año -->
-  <div class="card">
-    <div class="grid">
-      <div class="col" style="grid-column:span 6">
-        <label>Mes</label>
-        <select id="mesSel"></select>
-      </div>
-      <div class="col" style="grid-column:span 6">
-        <label>Año</label>
-        <select id="anioSel"></select>
-      </div>
+  <header>
+    <h1>Calculadora de Comisiones ONCE 2025</h1>
+    <div class="right">
+      <button class="ghost" id="btnTema" title="Tema">🌗 Oscuro</button>
+      <button class="ghost" id="btnExportar" title="Exportar JSON">⤴️ Exportar</button>
+      <button class="ghost" id="btnImportar" title="Importar JSON">⤵️ Importar</button>
+      <input id="fileImport" type="file" accept="application/json" hidden />
     </div>
-  </div>
+  </header>
 
-  <!-- Alta de venta diaria -->
-  <div class="card">
-    <h2 style="margin-top:0;font-size:1rem">Añadir venta diaria</h2>
-    <div class="grid">
-      <div class="col" style="grid-column:span 4">
-        <label>Fecha</label>
-        <input id="fecha" type="date" />
-      </div>
-      <div class="col" style="grid-column:span 4">
-        <label>Producto</label>
-        <select id="producto">
-          <optgroup label="Sorteos diarios">
-            <option value="diario">Diario (2€)</option>
-            <option value="cuponazo">Cuponazo (3€)</option>
-            <option value="sueldazo">Sueldazo (2€)</option>
-          </optgroup>
-          <optgroup label="Rascas">
-            <option value="rasca">Rasca (1–10€)</option>
-          </optgroup>
-          <optgroup label="Activos">
-            <option value="triplex">Triplex (0.5€)</option>
-            <option value="superonce">Super Once (1€)</option>
-            <option value="midia">Mi Día (1€)</option>
-            <option value="eurojackpot">Eurojackpot (2€)</option>
-          </optgroup>
-          <optgroup label="Especiales">
-            <option value="extra">Extraordinario (tramos)</option>
-            <option value="otros">Otros</option>
-          </optgroup>
-        </select>
-      </div>
-      <div class="col" style="grid-column:span 4">
-        <label>Unidades vendidas</label>
-        <input id="unidades" type="number" min="0" step="1" value="0"/>
-      </div>
-
-      <div class="col" style="grid-column:span 4">
-        <label>Precio (€)</label>
-        <input id="precio" type="number" min="0" step="0.1" value="2"/>
-      </div>
-      <div class="col" style="grid-column:span 8">
-        <label>Nota (opcional)</label>
-        <input id="nota" type="text" placeholder="ej: lunes mañana, zona centro…"/>
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:.75rem">
-      <button id="addBtn" class="btn" type="button">➕ Añadir</button>
-      <button id="csvBtn" class="btn-sec" type="button">⬇️ Exportar CSV</button>
-      <button id="limpiarBtn" class="btn-danger" type="button" title="Borra sólo el mes seleccionado">🗑️ Borrar mes</button>
-    </div>
-  </div>
-
-  <!-- Tabla de ventas -->
-  <div class="card">
-    <h2 style="margin-top:0;font-size:1rem">Ventas del mes</h2>
-    <div class="muted" id="infoDias"></div>
-    <div style="overflow:auto">
-      <table id="tabla">
-        <thead>
-          <tr>
-            <th>Fecha</th><th>Producto</th><th class="r">Unid.</th><th class="r">Precio</th><th class="r">Importe</th><th>Nota</th><th></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-        <tfoot>
-          <tr><td colspan="4" class="r">Total mes (€)</td><td class="r" id="totalMes">0,00</td><td colspan="2"></td></tr>
-        </tfoot>
-      </table>
-    </div>
-  </div>
-
-  <!-- Resumen y comisión -->
-  <div class="card">
-    <h2 style="margin-top:0;font-size:1rem">Resumen y comisión</h2>
-    <div class="grid">
-      <div class="col" style="grid-column:span 12">
-        <div class="row">
-          <span class="pill">Días trabajados: <strong id="diasTrab">0</strong></span>
-          <span class="pill">Mínimo: <strong id="minimo">0,00 €</strong></span>
-          <span class="pill">Umbral: <strong id="umbral">0,00 €</strong></span>
-          <span class="pill">Estado: <strong id="estado" class="warn">Sin comisión</strong></span>
+  <main>
+    <!-- Entrada rápida del día -->
+    <section class="card">
+      <div class="row">
+        <div>
+          <label>Fecha</label>
+          <input type="date" id="fecha" />
+        </div>
+        <div>
+          <label>Jornadas trabajadas (opcional)</label>
+          <input type="number" id="jornadasManuales" min="0" max="26" placeholder="Auto por días con venta" />
+          <div class="muted small">Si pones un número &gt; 0, se usará para mínimo/umbral.</div>
         </div>
       </div>
 
-      <div class="col" style="grid-column:span 12;margin-top:.5rem">
-        <div id="resumenProductos" class="muted"></div>
-      </div>
+      <div class="grid-2" style="margin-top:.5rem">
+        <div class="card" style="background:#fff0;border:1px dashed #0002">
+          <div class="chips" style="margin-bottom:.5rem"><span class="chip">Diario 2€</span><span class="chip">Cuponazo 3€</span><span class="chip">Sueldazo 2€</span></div>
+          <div class="row">
+            <div><label>Diario</label><input type="number" id="q_diario" min="0" value="0" /></div>
+            <div><label>Cuponazo</label><input type="number" id="q_cuponazo" min="0" value="0" /></div>
+            <div><label>Sueldazo</label><input type="number" id="q_sueldazo" min="0" value="0" /></div>
+          </div>
+        </div>
 
-      <div class="col" style="grid-column:span 12;margin-top:.5rem">
-        <div class="row">
-          <div class="card" style="flex:1">
-            <div class="muted">Comisión productos estándar*</div>
-            <div style="font-size:1.4rem"><strong id="comisionStd">0,00 €</strong></div>
-            <div class="muted" style="font-size:.8rem">*Diario, Cuponazo, Sueldazo, Rascas y Activos. Sólo si superas <b>Umbral</b>.</div>
+        <div class="card" style="background:#fff0;border:1px dashed #0002">
+          <div class="chips" style="margin-bottom:.5rem"><span class="chip">Rascas 1/2/3/5/10€</span><span class="chip">Activos</span></div>
+          <div class="row">
+            <div><label>Rasca 1€</label><input type="number" id="q_r1" min="0" value="0" /></div>
+            <div><label>Rasca 2€</label><input type="number" id="q_r2" min="0" value="0" /></div>
+            <div><label>Rasca 3€</label><input type="number" id="q_r3" min="0" value="0" /></div>
+            <div><label>Rasca 5€</label><input type="number" id="q_r5" min="0" value="0" /></div>
+            <div><label>Rasca 10€</label><input type="number" id="q_r10" min="0" value="0" /></div>
           </div>
-          <div class="card" style="flex:1">
-            <div class="muted">Comisión Extraordinarios (tramos)</div>
-            <div style="font-size:1.4rem"><strong id="comisionExtra">0,00 €</strong></div>
-            <div class="muted" style="font-size:.8rem">12% [1–199], 13% [200–299], 14% [300–399], 15% [400–499], 16% [500–599], 17% [≥600].</div>
-          </div>
-          <div class="card" style="flex:1">
-            <div class="muted">Comisión total estimada</div>
-            <div style="font-size:1.6rem;color:var(--primary)"><strong id="comisionTotal">0,00 €</strong></div>
+          <div class="row">
+            <div><label>Triples (0,50€)</label><input type="number" id="q_triples" min="0" value="0" /></div>
+            <div><label>Super Once (1€)</label><input type="number" id="q_superonce" min="0" value="0" /></div>
+            <div><label>Mi Día (1€)</label><input type="number" id="q_midia" min="0" value="0" /></div>
+            <div><label>Eurojackpot (2€)</label><input type="number" id="q_eurojackpot" min="0" value="0" /></div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
 
-</div>
+      <div class="row" style="margin-top:.5rem">
+        <div><label>Extraordinario (2,50€) - nº cupones</label><input type="number" id="q_extra" min="0" value="0" /></div>
+      </div>
 
-<script>
-/* ====== Config básica ====== */
-const PRODUCTOS = {
-  diario:      {nombre:"Diario",      precio:2,   tipo:"std", pct:0.077},
-  cuponazo:    {nombre:"Cuponazo",    precio:3,   tipo:"std", pct:0.077},
-  sueldazo:    {nombre:"Sueldazo",    precio:2,   tipo:"std", pct:0.077},
-  rasca:       {nombre:"Rasca",       precio:1,   tipo:"std", pct:0.065}, // puedes cambiar precio al cargar
-  triplex:     {nombre:"Triplex",     precio:0.5, tipo:"std", pct:0.05},
-  superonce:   {nombre:"Super Once",  precio:1,   tipo:"std", pct:0.05},
-  midia:       {nombre:"Mi Día",      precio:1,   tipo:"std", pct:0.05},
-  eurojackpot: {nombre:"Eurojackpot", precio:2,   tipo:"std", pct:0.05},
-  extra:       {nombre:"Extraordinario", precio:2.5, tipo:"extra"}, // precio libre por sorteo
-  otros:       {nombre:"Otros", precio:1.5, tipo:"std", pct:0.04}
-};
+      <div class="row" style="margin-top:.5rem">
+        <div><button id="btnAgregar">➕ Añadir día</button></div>
+        <div><button class="ghost" id="btnBorrarMes">🗑️ Borrar mes</button></div>
+      </div>
 
-// Tabla oficial Mínimo/Umbral 2025 (1–25 jornadas)
-const TABLA_MU = {
-  1:{min:142, umbral:210},
-  2:{min:284, umbral:420},
-  3:{min:426, umbral:630},
-  4:{min:568, umbral:840},
-  5:{min:710, umbral:1050},
-  6:{min:852, umbral:1260},
-  7:{min:994, umbral:1470},
-  8:{min:1136, umbral:1680},
-  9:{min:1278, umbral:1890},
- 10:{min:1420, umbral:2100},
- 11:{min:1562, umbral:2310},
- 12:{min:1704, umbral:2520},
- 13:{min:1846, umbral:2730},
- 14:{min:1988, umbral:2940},
- 15:{min:2130, umbral:3150},
- 16:{min:2272, umbral:3360},
- 17:{min:2414, umbral:3570},
- 18:{min:2556, umbral:3780},
- 19:{min:2698, umbral:3990},
- 20:{min:2840, umbral:4200},
- 21:{min:2982, umbral:4410},
- 22:{min:3124, umbral:4620},
- 23:{min:3266, umbral:4830},
- 24:{min:3408, umbral:5040},
- 25:{min:3550, umbral:5250}
-};
+      <details style="margin-top:.75rem">
+        <summary><b>Ajustes rápidos de % comisión</b> (se aplican si alcanzas el umbral)</summary>
+        <div class="row" style="margin-top:.5rem">
+          <div><label>% Diario/Cuponazo/Sueldazo</label><input id="pct_altos" type="number" step="0.1" value="7.7"></div>
+          <div><label>% Rascas</label><input id="pct_rascas" type="number" step="0.1" value="6.5"></div>
+          <div><label>% Activos (Triples/Super/MiDía/EJP)</label><input id="pct_activos" type="number" step="0.1" value="5.0"></div>
+        </div>
+        <div class="muted small">Extraordinarios usan tramos oficiales: 12–17% según nº de cupones (siempre que superes el umbral global).</div>
+      </details>
+    </section>
 
-// Tramos extraordinario (por Nº cupones Extra)
-function pctExtraord(unidades){
-  if (unidades>=600) return 0.17;
-  if (unidades>=500) return 0.16;
-  if (unidades>=400) return 0.15;
-  if (unidades>=300) return 0.14;
-  if (unidades>=200) return 0.13;
-  if (unidades>=1)   return 0.12;
-  return 0;
-}
+    <!-- Tabla de ventas -->
+    <section class="card">
+      <div class="row" style="align-items:end">
+        <div><label>Mes</label><input type="month" id="mes" /></div>
+        <div><button class="ghost" id="btnHoy">Hoy</button></div>
+      </div>
+      <div class="muted small" id="infoDias"></div>
+      <div style="overflow:auto;margin-top:.5rem">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Diario</th><th>Cuponazo</th><th>Sueldazo</th>
+              <th>R1</th><th>R2</th><th>R3</th><th>R5</th><th>R10</th>
+              <th>Triples</th><th>Super</th><th>MiDía</th><th>EJP</th>
+              <th>Extra</th>
+              <th>Total €</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="body"></tbody>
+          <tfoot>
+            <tr>
+              <td><b>Total mes</b></td>
+              <td id="s_diario">0</td><td id="s_cuponazo">0</td><td id="s_sueldazo">0</td>
+              <td id="s_r1">0</td><td id="s_r2">0</td><td id="s_r3">0</td><td id="s_r5">0</td><td id="s_r10">0</td>
+              <td id="s_triples">0</td><td id="s_superonce">0</td><td id="s_midia">0</td><td id="s_eurojackpot">0</td>
+              <td id="s_extra">0</td>
+              <td id="s_total">0,00 €</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
 
-/* ====== Estado & utilidades ====== */
-const $ = sel => document.querySelector(sel);
-const storageKey = "once-ventas-2025";
-const hoy = new Date();
+    <!-- Resumen -->
+    <section class="card">
+      <div class="row">
+        <div>
+          <label>Estado del tramo</label>
+          <div id="estado" class="status bad">Sin mínimo</div>
+        </div>
+        <div>
+          <label>Mínimo</label>
+          <div id="minimo" class="chip">0,00 €</div>
+        </div>
+        <div>
+          <label>Umbral</label>
+          <div id="umbral" class="chip">0,00 €</div>
+        </div>
+        <div>
+          <label>Comisión estimada</label>
+          <div id="comision" class="chip">0,00 €</div>
+        </div>
+      </div>
+      <div class="muted small" style="margin-top:.5rem">
+        La comisión se calcula solo si el <b>total del mes ≥ umbral</b>. Extraordinarios: tramos 12–17% por número de cupones.
+      </div>
+    </section>
+  </main>
 
-function fmt(n){ return n.toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2}); }
-function yyyymm(d){ return d.toISOString().slice(0,7); }
-function parseDateInput(v){ return v ? new Date(v+"T00:00:00") : new Date(); }
+  <script>
+    // ====== Datos base ======
+    const PRECIOS = {
+      diario:2, cuponazo:3, sueldazo:2,
+      r1:1, r2:2, r3:3, r5:5, r10:10,
+      triples:.5, superonce:1, midia:1, eurojackpot:2,
+      extra:2.5
+    };
 
-// Carga/guarda almacenamiento
-function loadAll(){ try{ return JSON.parse(localStorage.getItem(storageKey) || "{}"); }catch{ return {}; } }
-function saveAll(data){ localStorage.setItem(storageKey, JSON.stringify(data)); }
+    // % por defecto (editables en Ajustes)
+    function getPctAltos(){ return numberOr($("#pct_altos").value, 7.7) / 100; }
+    function getPctRascas(){ return numberOr($("#pct_rascas").value, 6.5) / 100; }
+    function getPctActivos(){ return numberOr($("#pct_activos").value, 5.0) / 100; }
 
-// Obtiene array ventas para (yyyy-mm)
-function getMes(ym){
-  const all = loadAll();
-  return Array.isArray(all[ym]) ? all[ym] : [];
-}
-function setMes(ym, arr){
-  const all = loadAll();
-  all[ym] = arr;
-  saveAll(all);
-}
-
-// Mes/año selects
-function rellenarMesAnio(){
-  const mesSel = $("#mesSel"), anioSel=$("#anioSel");
-  const meses = ["01","02","03","04","05","06","07","08","09","10","11","12"];
-  mesSel.innerHTML = meses.map(m=>`<option value="${m}">${m}</option>`).join("");
-  const y = hoy.getFullYear();
-  const ys = [y-1, y, y+1];
-  anioSel.innerHTML = ys.map(a=>`<option value="${a}">${a}</option>`).join("");
-  mesSel.value = hoy.toISOString().slice(5,7);
-  anioSel.value = String(y);
-}
-
-function ymActual(){ return `${$("#anioSel").value}-${$("#mesSel").value}`; }
-
-/* ====== UI lógica principal ====== */
-function autocompletarPrecio(){
-  const prod = $("#producto").value;
-  const p = PRODUCTOS[prod];
-  $("#precio").value = p ? p.precio : 1;
-}
-
-function addVenta(){
-  const fecha = $("#fecha").value;
-  const producto = $("#producto").value;
-  const unidades = parseInt($("#unidades").value || "0", 10);
-  const precio = parseFloat($("#precio").value || "0");
-  const nota = $("#nota").value.trim();
-
-  if(!fecha) return alert("Selecciona una fecha.");
-  if(unidades<=0) return alert("Indica unidades vendidas (>0).");
-  if(precio<=0) return alert("El precio debe ser mayor que 0.");
-
-  const ym = ymActual();
-  const ventas = getMes(ym);
-  ventas.push({fecha, producto, unidades, precio, nota});
-  // ordenar por fecha asc
-  ventas.sort((a,b)=> a.fecha.localeCompare(b.fecha));
-  setMes(ym, ventas);
-
-  // limpiar inputs (menos producto)
-  $("#unidades").value = 0;
-  $("#nota").value = "";
-  render();
-}
-
-function delVenta(idx){
-  const ym = ymActual();
-  const ventas = getMes(ym);
-  ventas.splice(idx,1);
-  setMes(ym, ventas);
-  render();
-}
-
-function exportCSV(){
-  const ym = ymActual();
-  const ventas = getMes(ym);
-  if(!ventas.length){ alert("No hay datos para exportar."); return; }
-  const encabezado = ["fecha","producto","nombre","unidades","precio","importe","nota"];
-  const filas = ventas.map(v=>{
-    const def = PRODUCTOS[v.producto]||{nombre:v.producto};
-    const imp = v.unidades * v.precio;
-    return [v.fecha, v.producto, def.nombre||v.producto, v.unidades, v.precio.toFixed(2), imp.toFixed(2), (v.nota||"").replaceAll('"','""')];
-  });
-  const csv = [encabezado, ...filas].map(r=>r.map(x=>`"${x}"`).join(",")).join("\n");
-  const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `ventas_${ym}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-function limpiarMes(){
-  if(!confirm("¿Seguro que quieres borrar todas las ventas del mes seleccionado?")) return;
-  const ym = ymActual();
-  setMes(ym, []);
-  render();
-}
-
-function render(){
-  const ym = ymActual();
-  const ventas = getMes(ym);
-  // tabla
-  const tbody = $("#tabla tbody");
-  tbody.innerHTML = "";
-  let totalMes = 0;
-
-  ventas.forEach((v, i)=>{
-    const importe = v.unidades * v.precio;
-    totalMes += importe;
-    const tr = document.createElement("tr");
-    const nombre = (PRODUCTOS[v.producto]?.nombre)||v.producto;
-    tr.innerHTML = `
-      <td>${v.fecha}</td>
-      <td>${nombre}</td>
-      <td class="r">${v.unidades}</td>
-      <td class="r">${fmt(v.precio)}</td>
-      <td class="r">${fmt(importe)}</td>
-      <td>${v.nota||""}</td>
-      <td class="r"><button class="btn-danger" onclick="delVenta(${i})">Eliminar</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-  $("#totalMes").textContent = fmt(totalMes);
-
-  // días trabajados (fechas únicas con alguna venta)
-  const dias = new Set(ventas.map(v=>v.fecha)).size;
-  $("#diasTrab").textContent = dias;
-
-  // mínimo/umbral
-  const mu = TABLA_MU[Math.min(dias,25)] || {min:0, umbral:0};
-  $("#minimo").textContent = fmt(mu.min);
-  $("#umbral").textContent = fmt(mu.umbral);
-
-  // resumen por producto (importe y unidades)
-  const porProducto = {};
-  ventas.forEach(v=>{
-    const key = v.producto;
-    porProducto[key] ??= {unid:0, importe:0, precio:v.precio};
-    porProducto[key].unid += v.unidades;
-    porProducto[key].importe += v.unidades * v.precio;
-  });
-  const resDiv = $("#resumenProductos");
-  resDiv.innerHTML = Object.entries(porProducto).map(([k,info])=>{
-    const def = PRODUCTOS[k]||{nombre:k};
-    return `<div>• <b>${def.nombre||k}</b>: ${info.unid} unid · ${fmt(info.importe)} €</div>`;
-  }).join("") || "<span class='muted'>Sin ventas registradas.</span>";
-
-  // comisión estándar (si totalMes >= umbral)
-  let comStd = 0;
-  if (totalMes >= (mu.umbral||Infinity)){
-    for(const [k,info] of Object.entries(porProducto)){
-      const def = PRODUCTOS[k];
-      if(!def || def.tipo!=="std") continue;
-      comStd += info.importe * (def.pct||0);
+    // Tramos Extraordinarios (por nº de cupones del propio Extra)
+    function pctExtraPorUnidades(n){
+      if(n>=600) return 0.17;
+      if(n>=500) return 0.16;
+      if(n>=400) return 0.15;
+      if(n>=300) return 0.14;
+      if(n>=200) return 0.13;
+      if(n>=1)   return 0.12;
+      return 0;
     }
-    $("#estado").textContent = "Con comisión (superado Umbral)";
-    $("#estado").className = "good";
-  }else{
-    $("#estado").textContent = totalMes >= (mu.min||Infinity) ? "Mínimo superado, sin comisión" : "Sin mínimo";
-    $("#estado").className = totalMes >= (mu.min||Infinity) ? "warn" : "bad";
-  }
-  $("#comisionStd").textContent = fmt(comStd);
 
-  // comisión extraordinarios (tramos por nº cupones del propio extraordinario)
-  const vExtra = porProducto["extra"];
-  let comExtra = 0;
-  if(vExtra){
-    const pct = pctExtraord(vExtra.unid);
-    comExtra = vExtra.importe * pct;
-  }
-  $("#comisionExtra").textContent = fmt(comExtra);
+    // Tabla oficial 2025 (Jornadas → Mínimo/Umbral) 1..25
+    const TRAMOS = {
+      1:[210,142], 2:[420,284], 3:[630,426], 4:[840,568], 5:[1050,710],
+      6:[1260,852],7:[1470,994],8:[1680,1136],9:[1890,1278],10:[2100,1420],
+      11:[2310,1562],12:[2520,1704],13:[2730,1846],14:[2940,1988],15:[3150,2130],
+      16:[3360,2272],17:[3570,2414],18:[3780,2556],19:[3990,2698],20:[4200,2840],
+      21:[4410,2982],22:[4620,3124],23:[4830,3266],24:[5040,3408],25:[5250,3550]
+    };
 
-  // total
-  $("#comisionTotal").textContent = fmt(comStd + comExtra);
+    // ====== Estado / almacenamiento ======
+    const KEY = "calc-once-2025-v1";
+    const state = load() || { ventas: [], ajustes:{} };
 
-  // info días
-  $("#infoDias").innerHTML = `
-    Días con venta: <b>${dias}</b> • Total vendido: <b>${fmt(totalMes)} €</b>
-  `;
-}
+    // ====== Utils ======
+    const $ = sel => document.querySelector(sel);
+    const fmt = n => (n||0).toLocaleString("es-ES",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+    const numberOr = (v,def) => {
+      const n = parseFloat(String(v).replace(",",".")); return isNaN(n)?def:n;
+    };
+    const toISODate = d => d.toISOString().slice(0,10);
 
-/* ====== Tema oscuro ====== */
-function aplicarTema(base){
-  const tema = base ?? localStorage.getItem("once-tema") ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-  document.documentElement.dataset.theme = tema;
-  localStorage.setItem("once-tema", tema);
-}
-$("#darkBtn").addEventListener("click", ()=> aplicarTema(document.documentElement.dataset.theme==="dark"?"light":"dark"));
+    // ====== Inicialización ======
+    (function init(){
+      // Tema
+      const savedTheme = localStorage.getItem("theme");
+      if(savedTheme) document.documentElement.dataset.theme = savedTheme;
 
-/* ====== PWA ====== */
-let deferredPrompt = null;
-window.addEventListener("beforeinstallprompt", (e)=>{
-  deferredPrompt = e; // no preventDefault: dejamos que el navegador decida si mostrar banner
-});
-$("#installBtn").addEventListener("click", async ()=>{
-  if(!deferredPrompt) { alert("Si tu navegador lo permite, podrás instalarla desde el menú del navegador."); return; }
-  deferredPrompt.prompt();
-  deferredPrompt = null;
-});
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", ()=>{
-    navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
-  });
-}
+      // Mes actual y fecha hoy
+      const now = new Date();
+      const ym = now.toISOString().slice(0,7);
+      $("#mes").value = ym;
+      $("#fecha").value = toISODate(now);
 
-/* ====== Eventos UI ====== */
-$("#producto").addEventListener("change", autocompletarPrecio);
-$("#addBtn").addEventListener("click", addVenta);
-$("#csvBtn").addEventListener("click", exportCSV);
-$("#limpiarBtn").addEventListener("click", limpiarMes);
-$("#mesSel").addEventListener("change", render);
-$("#anioSel").addEventListener("change", render);
+      // Ajustes guardados
+      if(state.ajustes){
+        if(state.ajustes.pct_altos) $("#pct_altos").value = state.ajustes.pct_altos;
+        if(state.ajustes.pct_rascas) $("#pct_rascas").value = state.ajustes.pct_rascas;
+        if(state.ajustes.pct_activos) $("#pct_activos").value = state.ajustes.pct_activos;
+      }
 
-/* ====== Init ====== */
-(function init(){
-  rellenarMesAnio();
-  // fecha por defecto = hoy del mes/año elegidos
-  const ym = ymActual();
-  const [yy,mm] = ym.split("-");
-  const d = new Date(); d.setFullYear(+yy, +mm-1, Math.min(d.getDate(), 28));
-  $("#fecha").value = d.toISOString().slice(0,10);
-  autocompletarPrecio();
-  aplicarTema();
-  render();
-})();
-</script>
+      render();
+      // PWA: registrar SW si existe
+      if("serviceWorker" in navigator){
+        navigator.serviceWorker.register("./service-worker.js").then(
+          reg => console.log("SW registrado", reg.scope)
+        ).catch(err => console.log("SW no encontrado (404). Registro omitido."));
+      }
+    })();
+
+    // ====== Eventos UI ======
+    $("#btnTema").addEventListener("click", ()=>{
+      const html = document.documentElement;
+      html.dataset.theme = html.dataset.theme==="dark" ? "" : "dark";
+      localStorage.setItem("theme", html.dataset.theme || "light");
+      $("#btnTema").textContent = (html.dataset.theme==="dark") ? "🌞 Claro" : "🌗 Oscuro";
+    });
+
+    $("#btnAgregar").addEventListener("click", ()=>{
+      const fecha = $("#fecha").value;
+      if(!fecha){ alert("Elige una fecha"); return; }
+
+      const v = {
+        fecha,
+        diario: +$("#q_diario").value||0,
+        cuponazo: +$("#q_cuponazo").value||0,
+        sueldazo: +$("#q_sueldazo").value||0,
+        r1: +$("#q_r1").value||0, r2:+$("#q_r2").value||0, r3:+$("#q_r3").value||0, r5:+$("#q_r5").value||0, r10:+$("#q_r10").value||0,
+        triples:+$("#q_triples").value||0, superonce:+$("#q_superonce").value||0, midia:+$("#q_midia").value||0, eurojackpot:+$("#q_eurojackpot").value||0,
+        extra:+$("#q_extra").value||0
+      };
+
+      // si ya existe ese día, lo sustituimos (evita duplicados)
+      const idx = state.ventas.findIndex(x=>x.fecha===v.fecha);
+      if(idx>=0) state.ventas[idx]=v; else state.ventas.push(v);
+
+      // Guardar ajustes actuales
+      state.ajustes = {
+        pct_altos: $("#pct_altos").value,
+        pct_rascas: $("#pct_rascas").value,
+        pct_activos: $("#pct_activos").value
+      };
+
+      save(); limpiarInputsDia(); render();
+    });
+
+    $("#btnHoy").addEventListener("click", ()=>{
+      const now = new Date(); $("#fecha").value = toISODate(now);
+    });
+
+    $("#btnBorrarMes").addEventListener("click", ()=>{
+      const ym = $("#mes").value;
+      if(!ym) return;
+      if(!confirm(`Borrar todas las ventas del mes ${ym}?`)) return;
+      state.ventas = state.ventas.filter(v=>!v.fecha.startsWith(ym));
+      save(); render();
+    });
+
+    $("#mes").addEventListener("input", render);
+    $("#jornadasManuales").addEventListener("input", render);
+
+    // Exportar / importar
+    $("#btnExportar").addEventListener("click", ()=>{
+      const blob = new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "ventas_once_2025.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+    $("#btnImportar").addEventListener("click", ()=> $("#fileImport").click());
+    $("#fileImport").addEventListener("change", (e)=>{
+      const f = e.target.files[0]; if(!f) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        try{
+          const data = JSON.parse(reader.result);
+          if(!data || !Array.isArray(data.ventas)) throw new Error("Formato inválido");
+          state.ventas = data.ventas;
+          state.ajustes = data.ajustes||{};
+          if(state.ajustes.pct_altos) $("#pct_altos").value = state.ajustes.pct_altos;
+          if(state.ajustes.pct_rascas) $("#pct_rascas").value = state.ajustes.pct_rascas;
+          if(state.ajustes.pct_activos) $("#pct_activos").value = state.ajustes.pct_activos;
+          save(); render();
+        }catch(err){ alert("No se pudo importar: " + err.message); }
+      };
+      reader.readAsText(f);
+      e.target.value="";
+    });
+
+    // ====== Render principal ======
+    function render(){
+      const ym = $("#mes").value; // "YYYY-MM"
+      const ventasMes = state.ventas.filter(v=>v.fecha.startsWith(ym)).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+
+      const body = $("#body"); body.innerHTML="";
+      const sum = {
+        diario:0, cuponazo:0, sueldazo:0,
+        r1:0,r2:0,r3:0,r5:0,r10:0,
+        triples:0,superonce:0,midia:0,eurojackpot:0,
+        extra:0, total:0
+      };
+
+      for(const v of ventasMes){
+        const totalDia = valorDia(v);
+        sum.diario+=v.diario; sum.cuponazo+=v.cuponazo; sum.sueldazo+=v.sueldazo;
+        sum.r1+=v.r1; sum.r2+=v.r2; sum.r3+=v.r3; sum.r5+=v.r5; sum.r10+=v.r10;
+        sum.triples+=v.triples; sum.superonce+=v.superonce; sum.midia+=v.midia; sum.eurojackpot+=v.eurojackpot;
+        sum.extra+=v.extra; sum.total+=totalDia;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${v.fecha}</td>
+          <td>${v.diario}</td><td>${v.cuponazo}</td><td>${v.sueldazo}</td>
+          <td>${v.r1}</td><td>${v.r2}</td><td>${v.r3}</td><td>${v.r5}</td><td>${v.r10}</td>
+          <td>${v.triples}</td><td>${v.superonce}</td><td>${v.midia}</td><td>${v.eurojackpot}</td>
+          <td>${v.extra}</td>
+          <td>${fmt(totalDia)}</td>
+          <td><button class="ghost small" onclick='del("${v.fecha}")'>✖</button></td>
+        `;
+        body.appendChild(tr);
+      }
+
+      // Totales
+      $("#s_diario").textContent = sum.diario;
+      $("#s_cuponazo").textContent = sum.cuponazo;
+      $("#s_sueldazo").textContent = sum.sueldazo;
+      $("#s_r1").textContent = sum.r1; $("#s_r2").textContent = sum.r2; $("#s_r3").textContent = sum.r3; $("#s_r5").textContent = sum.r5; $("#s_r10").textContent = sum.r10;
+      $("#s_triples").textContent = sum.triples; $("#s_superonce").textContent = sum.superonce; $("#s_midia").textContent = sum.midia; $("#s_eurojackpot").textContent = sum.eurojackpot;
+      $("#s_extra").textContent = sum.extra;
+      $("#s_total").textContent = fmt(sum.total);
+
+      // Jornadas: manual o automáticas (fechas únicas con venta)
+      const diasManual = parseInt($("#jornadasManuales").value||"0",10) || 0;
+      const diasAuto = new Set(ventasMes.map(v=>v.fecha)).size;
+      const dias = diasManual>0 ? diasManual : diasAuto;
+
+      // Mínimo / Umbral (si no hay fila exacta, clamp a 25)
+      const tramo = TRAMOS[Math.max(1, Math.min(25, dias))] || [0,0];
+      const [minimo, umbral] = tramo;
+
+      $("#minimo").textContent = fmt(minimo);
+      $("#umbral").textContent = fmt(umbral);
+
+      let estado = "Sin mínimo", cls="bad";
+      if(sum.total >= umbral){ estado = "✅ Umbral"; cls="ok"; }
+      else if(sum.total >= minimo){ estado="⚠️ Mínimo"; cls="warn"; }
+      $("#estado").className = `status ${cls}`;
+      $("#estado").textContent = estado;
+
+      // Comisión (si superas umbral)
+      let comision = 0;
+      if(sum.total >= umbral){
+        const pctAltos = getPctAltos();
+        const pctRascas = getPctRascas();
+        const pctActivos = getPctActivos();
+
+        const eurosAltos =
+          sum.diario*PRECIOS.diario + sum.cuponazo*PRECIOS.cuponazo + sum.sueldazo*PRECIOS.sueldazo;
+        const eurosRascas =
+          sum.r1*1 + sum.r2*2 + sum.r3*3 + sum.r5*5 + sum.r10*10;
+        const eurosActivos =
+          sum.triples*0.5 + sum.superonce*1 + sum.midia*1 + sum.eurojackpot*2;
+        const eurosExtra = sum.extra * PRECIOS.extra;
+
+        // tramos extra por unidades
+        const pctExtra = pctExtraPorUnidades(sum.extra);
+
+        comision =
+          eurosAltos * pctAltos +
+          eurosRascas * pctRascas +
+          eurosActivos * pctActivos +
+          eurosExtra * pctExtra;
+      }
+      $("#comision").textContent = fmt(comision);
+
+      // Info días
+      const modo = diasManual>0 ? " (manual)" : "";
+      $("#infoDias").innerHTML = `
+        Días con venta: <b>${diasAuto}</b> • Jornadas usadas: <b>${dias}${modo}</b> • Total vendido: <b>${fmt(sum.total)}</b>
+      `;
+    }
+
+    function valorDia(v){
+      return (
+        v.diario*2 + v.cuponazo*3 + v.sueldazo*2 +
+        v.r1*1 + v.r2*2 + v.r3*3 + v.r5*5 + v.r10*10 +
+        v.triples*0.5 + v.superonce*1 + v.midia*1 + v.eurojackpot*2 +
+        v.extra*2.5
+      );
+    }
+
+    function limpiarInputsDia(){
+      for(const id of ["q_diario","q_cuponazo","q_sueldazo","q_r1","q_r2","q_r3","q_r5","q_r10","q_triples","q_superonce","q_midia","q_eurojackpot","q_extra"]){
+        $( "#"+id ).value = 0;
+      }
+    }
+
+    function del(fecha){
+      state.ventas = state.ventas.filter(v=>v.fecha!==fecha);
+      save(); render();
+    }
+
+    function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+    function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||""); }catch{return null;} }
+  </script>
 </body>
 </html>
