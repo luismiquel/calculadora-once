@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Calculadora Comisiones ONCE 2025</title>
   <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0b1320">
   <style>
     :root{
       --bg:#0b1320; --fg:#e8eefc; --muted:#9bb0cc; --card:#111a2c; --accent:#4da3ff; --good:#2ecc71; --warn:#f1c40f; --bad:#e74c3c; --border:#1f2a44;
@@ -15,14 +16,17 @@
     }
     html,body{height:100%}
     body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;}
-    .wrap{max-width:980px;margin-inline:auto;padding:20px;}
+    .wrap{max-width:980px;margin-inline:auto;padding:20px}
     h1{font-size:clamp(22px,3.5vw,30px);margin:0 0 14px}
+    h2{font-size:clamp(18px,3vw,22px)}
     .row{display:grid;gap:16px}
     @media(min-width:720px){.row{grid-template-columns:1.2fr 1fr}}
     .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
     label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
     input,select,button{font:inherit}
-    input[type="number"], input[type="date"], input[type="month"], select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--fg)}
+    input[type="number"], input[type="date"], input[type="month"], select{
+      width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--fg)
+    }
     input[type="number"]:focus,input[type="date"]:focus,input[type="month"]:focus,select:focus{outline:var(--focus)}
     .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
     @media(min-width:640px){.grid{grid-template-columns:repeat(4,1fr)}}
@@ -37,13 +41,14 @@
     .kpi .box{background:var(--card);border:1px solid var(--border);padding:12px;border-radius:12px}
     .kpi .val{font-size:18px;font-weight:600}
     progress{width:100%;height:14px}
-    .head{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
-    .switch{display:inline-flex;align-items:center;gap:8px}
-    .pill{border:1px solid var(--border);padding:6px 10px;border-radius:999px;background:transparent;color:var(--fg);cursor:pointer}
+    .head{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap}
+    .switch{display:flex;gap:8px;flex-wrap:wrap}
+    .pill{border:1px solid var(--border);padding:8px 12px;border-radius:999px;background:transparent;color:var(--fg);cursor:pointer}
     .danger{color:#fff;background:var(--bad);border-color:transparent}
     .ok{color:#fff;background:var(--good);border-color:transparent}
     .tips{font-size:13px;color:var(--muted)}
     .mono{font-variant-numeric:tabular-nums}
+    .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   </style>
 </head>
 <body>
@@ -66,7 +71,7 @@
             <input type="date" id="fecha" />
           </div>
           <div>
-            <label>Jornada tipo (sólo informativo)</label>
+            <label>Jornada tipo (informativo)</label>
             <select id="tipoJornada">
               <option value="libre">Libre</option>
               <option value="diario">L-J Diario</option>
@@ -141,15 +146,28 @@
           <button class="btn ok" id="guardarDia">💾 Guardar día</button>
           <button class="btn secondary" id="limpiarForm">↺ Limpiar</button>
         </div>
-        <p class="tips">Consejo: rellena sólo lo que hayas vendido ese día. Si vuelves a guardar la misma fecha, se <b>sumará</b> a lo ya guardado.</p>
+        <p class="tips">Consejo: rellena sólo lo que hayas vendido ese día. Si guardas la misma fecha otra vez, se <b>sumará</b> a lo guardado.</p>
       </section>
 
       <section class="card">
         <h2 style="margin-top:0">Resumen del mes</h2>
+
+        <div class="inline">
+          <label class="inline" style="gap:6px">
+            <input type="checkbox" id="chkJornadasManual">
+            Usar jornadas manuales
+          </label>
+          <input type="number" id="inpJornadas" min="0" max="26" step="1" placeholder="0" style="max-width:110px">
+        </div>
+
         <div class="kpi">
           <div class="box">
-            <div class="muted">Jornadas trabajadas</div>
-            <div class="val mono" id="kpiJornadas">0</div>
+            <div class="muted">Jornadas (calculadas)</div>
+            <div class="val mono" id="kpiJornadasCalc">0</div>
+          </div>
+          <div class="box">
+            <div class="muted">Jornadas usadas</div>
+            <div class="val mono" id="kpiJornadasUsadas">0</div>
           </div>
           <div class="box">
             <div class="muted">Vendido acumulado (€)</div>
@@ -164,6 +182,7 @@
             <div class="val mono" id="kpiUmbral">0,00</div>
           </div>
         </div>
+
         <div style="margin-top:14px">
           <label>Progreso a mínimo</label>
           <progress id="progMin" value="0" max="1"></progress>
@@ -213,13 +232,14 @@
       </div>
     </section>
 
-    <p class="tips">Mínimo y umbral se calculan como: <b>142€</b> y <b>210€</b> por jornada trabajada (un día con ventas &gt; 0). Tus datos se guardan automáticamente en este dispositivo (localStorage) por mes.</p>
+    <p class="tips">Mínimo y umbral: <b>142€</b> y <b>210€</b> por jornada. Se cuentan como jornada los días con ventas &gt; 0 (o usa jornadas manuales). Datos guardados por mes en este dispositivo (localStorage).</p>
   </div>
 
   <script>
   (function(){
     const EL = (id)=>document.getElementById(id);
 
+    // Precios / importes
     const PRICES = {
       diario: 2,
       cuponazo: 3,
@@ -228,11 +248,14 @@
       miDia: 1,
       eurojackpot: 2
     };
-
     const LIBROS_RASCAS = { r1:100, r2:100, r3:150, r5:150, r10:150 };
 
+    // Storage keys
     const KEY = 'calcOnce.diario.v2';
+    const THEME_KEY = 'calcOnce.theme';
+    const JORNADAS_KEY = 'calcOnce.jornadasManual'; // {enabled:boolean, value:number} por mes
 
+    // Elementos
     const fecha = EL('fecha');
     const tipoJornada = EL('tipoJornada');
     const nDiario = EL('nDiario');
@@ -254,7 +277,11 @@
     const resetMes = EL('resetMes');
     const toggleTheme = EL('toggleTheme');
 
-    const kpiJornadas = EL('kpiJornadas');
+    const chkJornadasManual = EL('chkJornadasManual');
+    const inpJornadas = EL('inpJornadas');
+
+    const kpiJornadasCalc = EL('kpiJornadasCalc');
+    const kpiJornadasUsadas = EL('kpiJornadasUsadas');
     const kpiVendido = EL('kpiVendido');
     const kpiMinimo = EL('kpiMinimo');
     const kpiUmbral = EL('kpiUmbral');
@@ -267,25 +294,50 @@
     const tbody = document.querySelector('#tabla tbody');
     const tfoot = document.querySelector('#tabla tfoot');
 
+    // Inicializar fecha y mes
     const today = new Date();
     fecha.valueAsDate = today;
     mesSel.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
 
-    // Tema
+    // Tema (oscuro/ligero)
     (function initTheme(){
-      const saved = localStorage.getItem('calcOnce.theme') || 'dark';
-      if(saved==='light') document.documentElement.setAttribute('data-theme','light');
+      let saved = localStorage.getItem(THEME_KEY);
+      if(!saved){
+        // si no hay preferencia guardada, respeta prefers-color-scheme
+        const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+        saved = prefersLight ? 'light' : 'dark';
+      }
+      if(saved === 'light'){
+        document.documentElement.setAttribute('data-theme','light');
+        document.querySelector('meta[name="theme-color"]').setAttribute('content','#f4f7fb');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        document.querySelector('meta[name="theme-color"]').setAttribute('content','#0b1320');
+      }
       toggleTheme.addEventListener('click',()=>{
         const isLight = document.documentElement.getAttribute('data-theme')==='light';
-        if(isLight){ document.documentElement.removeAttribute('data-theme'); localStorage.setItem('calcOnce.theme','dark'); }
-        else { document.documentElement.setAttribute('data-theme','light'); localStorage.setItem('calcOnce.theme','light'); }
+        if(isLight){
+          document.documentElement.removeAttribute('data-theme');
+          localStorage.setItem(THEME_KEY,'dark');
+          document.querySelector('meta[name="theme-color"]').setAttribute('content','#0b1320');
+        }else{
+          document.documentElement.setAttribute('data-theme','light');
+          localStorage.setItem(THEME_KEY,'light');
+          document.querySelector('meta[name="theme-color"]').setAttribute('content','#f4f7fb');
+        }
       });
     })();
 
-    function load(){
-      try{ return JSON.parse(localStorage.getItem(KEY) || '{}'); }catch{ return {}; }
-    }
+    // Utilidades de storage
+    function load(){ try{ return JSON.parse(localStorage.getItem(KEY) || '{}'); }catch{ return {}; } }
     function save(data){ localStorage.setItem(KEY, JSON.stringify(data)); }
+
+    function loadJornadasState(){
+      try{ return JSON.parse(localStorage.getItem(JORNADAS_KEY) || '{}'); }catch{ return {}; }
+    }
+    function saveJornadasState(obj){
+      localStorage.setItem(JORNADAS_KEY, JSON.stringify(obj||{}));
+    }
 
     function getMonthData(yyyymm){
       const data = load();
@@ -297,13 +349,22 @@
       save(data);
     }
 
-    function fmtEur(n){ return (n||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+    function fmt€(n){ return (n||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2}); }
 
     function calcTotal(entry){
       const totalCupones = (entry.diario||0)*PRICES.diario + (entry.cuponazo||0)*PRICES.cuponazo + (entry.sueldazo||0)*PRICES.sueldazo;
       const totalRascas = (entry.r1||0)*LIBROS_RASCAS.r1 + (entry.r2||0)*LIBROS_RASCAS.r2 + (entry.r3||0)*LIBROS_RASCAS.r3 + (entry.r5||0)*LIBROS_RASCAS.r5 + (entry.r10||0)*LIBROS_RASCAS.r10;
       const totalActivos = (entry.triples||0)*PRICES.triples + (entry.superonce||0) + (entry.miDia||0)*PRICES.miDia + (entry.eurojackpot||0)*PRICES.eurojackpot;
       return totalCupones + totalRascas + totalActivos;
+    }
+
+    function jornadasCalculadas(month){
+      // Cuenta días con total > 0
+      let j = 0;
+      for(const f of Object.keys(month)){
+        if(calcTotal(month[f]) > 0) j++;
+      }
+      return j;
     }
 
     function render(){
@@ -314,11 +375,10 @@
       // Tabla
       tbody.innerHTML = '';
       let tot = {diario:0,cuponazo:0,sueldazo:0,r1:0,r2:0,r3:0,r5:0,r10:0,triples:0,superonce:0,miDia:0,eurojackpot:0};
-      let vendido = 0; let jornadas = 0;
+      let vendido = 0;
       for(const f of fechas){
         const e = month[f];
         const rowTotal = calcTotal(e);
-        if(rowTotal>0) jornadas++;
         vendido += rowTotal;
         for(const k in tot){ tot[k]+= (e[k]||0); }
         const tr = document.createElement('tr');
@@ -333,15 +393,15 @@
           <td>${e.r5||0}</td>
           <td>${e.r10||0}</td>
           <td>${e.triples||0}</td>
-          <td>${fmtEur(e.superonce||0)}</td>
+          <td>${fmt€(e.superonce||0)}</td>
           <td>${e.miDia||0}</td>
           <td>${e.eurojackpot||0}</td>
-          <td class="mono">${fmtEur(rowTotal)}</td>
-          <td><button class="pill" data-del="${f}">🗑️</button></td>`;
+          <td class="mono">${fmt€(rowTotal)}</td>
+          <td><button class="pill" data-del="${f}" title="Borrar fila">🗑️</button></td>`;
         tbody.appendChild(tr);
       }
 
-      const totEur = calcTotal(tot);
+      const tot€ = calcTotal(tot);
       tfoot.innerHTML = `
         <tr>
           <th>Total</th>
@@ -354,26 +414,34 @@
           <th>${tot.r5}</th>
           <th>${tot.r10}</th>
           <th>${tot.triples}</th>
-          <th class="mono">${fmtEur(tot.superonce)}</th>
+          <th class="mono">${fmt€(tot.superonce)}</th>
           <th>${tot.miDia}</th>
           <th>${tot.eurojackpot}</th>
-          <th class="mono">${fmtEur(totEur)}</th>
+          <th class="mono">${fmt€(tot€)}</th>
           <th></th>
         </tr>`;
 
+      // Jornadas (calc vs usadas)
+      const jCalc = jornadasCalculadas(month);
+      const jState = loadJornadasState()[yyyymm] || {enabled:false, value:0};
+      chkJornadasManual.checked = !!jState.enabled;
+      inpJornadas.value = jState.value || '';
+      const jUsadas = jState.enabled ? Math.max(0, Math.min(26, Number(jState.value||0))) : jCalc;
+
       // KPIs y progresos
-      const minimo = 142 * jornadas;
-      const umbral = 210 * jornadas;
-      kpiJornadas.textContent = jornadas;
-      kpiVendido.textContent = fmtEur(vendido);
-      kpiMinimo.textContent = fmtEur(minimo);
-      kpiUmbral.textContent = fmtEur(umbral);
+      const minimo = 142 * jUsadas;
+      const umbral = 210 * jUsadas;
+      kpiJornadasCalc.textContent = jCalc;
+      kpiJornadasUsadas.textContent = jUsadas;
+      kpiVendido.textContent = fmt€(vendido);
+      kpiMinimo.textContent = fmt€(minimo);
+      kpiUmbral.textContent = fmt€(umbral);
 
       const vMin = minimo>0? Math.min(1, vendido/minimo): 0;
       const vUmb = umbral>0? Math.min(1, vendido/umbral): 0;
       progMin.value = vMin; progUmb.value = vUmb;
-      txtMin.textContent = vendido>=minimo? `✅ Alcanzado. +${fmtEur(vendido-minimo)} sobre mínimo.` : `Faltan ${fmtEur(minimo-vendido)} para el mínimo.`;
-      txtUmb.textContent = vendido>=umbral? `✅ Alcanzado. +${fmtEur(vendido-umbral)} sobre umbral.` : `Faltan ${fmtEur(umbral-vendido)} para el umbral.`;
+      txtMin.textContent = vendido>=minimo? `✅ Alcanzado. +${fmt€(vendido-minimo)} sobre mínimo.` : `Faltan ${fmt€(minimo-vendido)} para el mínimo.`;
+      txtUmb.textContent = vendido>=umbral? `✅ Alcanzado. +${fmt€(vendido-umbral)} sobre umbral.` : `Faltan ${fmt€(umbral-vendido)} para el umbral.`;
 
       // Borrado por fila
       tbody.querySelectorAll('button[data-del]').forEach(btn=>{
@@ -381,8 +449,8 @@
           const f = btn.getAttribute('data-del');
           const data = load();
           if(data[yyyymm]){ delete data[yyyymm][f]; save(data); render(); }
-        })
-      })
+        });
+      });
     }
 
     function sumaGuardada(prev, add){
@@ -427,11 +495,30 @@
 
     mesSel.addEventListener('change', render);
 
+    // Jornadas manuales listeners
+    chkJornadasManual.addEventListener('change', ()=>{
+      const yyyymm = mesSel.value;
+      const st = loadJornadasState();
+      st[yyyymm] = st[yyyymm] || {enabled:false, value:0};
+      st[yyyymm].enabled = chkJornadasManual.checked;
+      if(!st[yyyymm].enabled){ st[yyyymm].value = 0; inpJornadas.value = ''; }
+      saveJornadasState(st);
+      render();
+    });
+    inpJornadas.addEventListener('input', ()=>{
+      const yyyymm = mesSel.value;
+      const st = loadJornadasState();
+      st[yyyymm] = st[yyyymm] || {enabled:false, value:0};
+      st[yyyymm].value = Math.max(0, Math.min(26, Number(inpJornadas.value||0)));
+      saveJornadasState(st);
+      render();
+    });
+
+    // Export CSV
     exportCsv.addEventListener('click',()=>{
       const yyyymm = mesSel.value;
       const month = getMonthData(yyyymm);
       const fechas = Object.keys(month).sort();
-      if(fechas.length===0){ alert('No hay ventas en el mes seleccionado.'); return; }
       const rows = [
         ['Fecha','Diario','Cuponazo','Sueldazo','R1€(libros)','R2€','R3€','R5€','R10€','Triples','SuperONCE €','Mi Día','Eurojackpot','Total €']
       ];
@@ -442,10 +529,10 @@
         rows.push([f,e.diario||0,e.cuponazo||0,e.sueldazo||0,e.r1||0,e.r2||0,e.r3||0,e.r5||0,e.r10||0,e.triples||0,(e.superonce||0).toFixed(2),e.miDia||0,e.eurojackpot||0,tEur.toFixed(2)]);
         for(const k in tot){ tot[k]+= (e[k]||0); }
       }
-      const totEur2 = calcTotal(tot);
-      rows.push(['TOTAL',tot.diario,tot.cuponazo,tot.sueldazo,tot.r1,tot.r2,tot.r3,tot.r5,tot.r10,tot.triples,tot.superonce.toFixed(2),tot.miDia,tot.eurojackpot,totEur2.toFixed(2)]);
+      const totEur = calcTotal(tot);
+      rows.push(['TOTAL',tot.diario,tot.cuponazo,tot.sueldazo,tot.r1,tot.r2,tot.r3,tot.r5,tot.r10,tot.triples,tot.superonce.toFixed(2),tot.miDia,tot.eurojackpot,totEur.toFixed(2)]);
 
-      // CSV con saltos de línea correctos
+      // CSV correcto (saltos de línea con \n)
       const csv = rows.map(r=>r.map(x=>`"${String(x).replaceAll('"','""')}"`).join(',')).join('\n');
       const blob = new Blob([csv],{type:'text/csv;charset=utf-8'});
       const a = document.createElement('a');
@@ -455,12 +542,17 @@
       URL.revokeObjectURL(a.href);
     });
 
+    // Borrar mes
     resetMes.addEventListener('click',()=>{
       const yyyymm = mesSel.value;
       if(!confirm(`¿Borrar todos los datos de ${yyyymm}?`)) return;
       const data = load();
       delete data[yyyymm];
       save(data);
+      // Limpia también jornadas manuales del mes
+      const st = loadJornadasState();
+      delete st[yyyymm];
+      saveJornadasState(st);
       render();
     });
 
@@ -468,10 +560,10 @@
     render();
   })();
 
-  // Registro del Service Worker (silencioso, sin errores en consola si 404)
+  // Service Worker (silencioso si falta)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./service-worker.js')
+      navigator.serviceWorker.register('service-worker.js')
         .then(reg => console.log('SW registrado', reg.scope))
         .catch(() => console.warn('SW no encontrado (404). Registro omitido.'));
     });
