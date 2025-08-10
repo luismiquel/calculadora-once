@@ -4,89 +4,169 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Calculadora de Comisiones ONCE 2025</title>
-  <meta name="theme-color" content="#1e1e1e">
+  <meta name="theme-color" content="#121212">
   <style>
     :root{
-      --bg:#ffffff; --fg:#111111; --card:#f5f5f5; --primary:#0d6efd; --ok:#198754; --warn:#ffc107; --bad:#dc3545;
+      --bg:#ffffff; --fg:#111; --card:#f5f5f5; --muted:#6b7280;
+      --primary:#0d6efd; --ok:#198754; --warn:#ffc107; --bad:#dc3545; --border:#0002;
     }
     [data-theme="dark"]{
-      --bg:#121212; --fg:#f0f0f0; --card:#1e1e1e; --primary:#62a7ff; --ok:#5ddf9a; --warn:#ffe27a; --bad:#ff8b94;
+      --bg:#121212; --fg:#f1f1f1; --card:#1e1e1e; --muted:#a3a3a3;
+      --primary:#62a7ff; --ok:#5ddf9a; --warn:#ffe27a; --bad:#ff8b94; --border:#fff2;
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--fg)}
     header{display:flex;gap:.75rem;align-items:center;justify-content:space-between;padding:1rem;position:sticky;top:0;background:var(--bg)}
     h1{font-size:1.1rem;margin:0}
-    main{max-width:760px;margin:0 auto;padding:1rem;display:grid;gap:1rem}
+    main{max-width:980px;margin:0 auto;padding:1rem;display:grid;gap:1rem}
     .card{background:var(--card);border-radius:12px;padding:1rem}
     label{display:block;font-weight:600;margin:.35rem 0}
-    input,select,button{width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid #00000022;background:#fff}
-    [data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] button{background:#111;border-color:#ffffff22;color:var(--fg)}
+    input,select,button{width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid var(--border);background:#fff}
+    [data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] button{background:#111;border-color:var(--border);color:var(--fg)}
     .grid{display:grid;gap:.75rem}
-    @media(min-width:720px){ .grid{grid-template-columns:1fr 1fr} }
+    @media(min-width:860px){ .grid.cols-2{grid-template-columns:1fr 1fr} .grid.cols-3{grid-template-columns:1fr 1fr 1fr} }
     .row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
     .actions{display:flex;gap:.5rem;flex-wrap:wrap}
     button.primary{background:var(--primary);color:#fff;border:none}
+    button.danger{background:var(--bad);color:#fff;border:none}
     .pill{display:inline-block;padding:.25rem .6rem;border-radius:999px;font-size:.85rem}
     .ok{background:color-mix(in srgb, var(--ok) 20%, transparent);border:1px solid var(--ok);color:var(--ok)}
     .warn{background:color-mix(in srgb, var(--warn) 20%, transparent);border:1px solid var(--warn);color:#8a6a00}
     .bad{background:color-mix(in srgb, var(--bad) 20%, transparent);border:1px solid var(--bad);color:#7a1a20}
-    .muted{opacity:.85}
+    .muted{color:var(--muted)}
     .kpi{font-size:1.1rem;margin:.25rem 0}
     .mono{font-variant-numeric:tabular-nums}
-    .right{display:flex;gap:.5rem;align-items:center}
+    table{width:100%;border-collapse:collapse;margin-top:.5rem}
+    th,td{padding:.55rem;border-bottom:1px solid var(--border);text-align:left}
+    td.num, th.num{text-align:right}
+    .table-actions{display:flex;gap:.35rem}
+    .small{font-size:.9rem}
+    .section-title{margin:.2rem 0 .8rem;font-size:1rem}
   </style>
 </head>
 <body>
   <header>
     <h1>Calculadora de Comisiones ONCE 2025</h1>
-    <div class="right">
+    <div class="actions">
       <button id="btnTema" title="Cambiar tema">🌗 Tema</button>
     </div>
   </header>
 
   <main>
-    <section class="card grid">
-      <div>
-        <label for="tipo">Tipo de producto</label>
-        <select id="tipo">
-          <option value="diario">Diario</option>
-          <option value="cuponazo">Cuponazo</option>
-          <option value="sueldazo">Sueldazo</option>
-          <option value="rasca">Rasca</option>
-          <option value="triplex">Triplex</option>
-          <option value="superonce">Super Once</option>
-          <option value="midia">Mi Día</option>
-          <option value="eurojackpot">Eurojackpot</option>
-          <option value="extraordinario">Extraordinario</option>
-          <option value="resto">Otros</option>
-        </select>
+    <!-- CALCULADORA RÁPIDA -->
+    <section class="card">
+      <h2 class="section-title">🧮 Calculadora rápida</h2>
+      <div class="grid cols-3">
+        <div>
+          <label for="tipo">Tipo de producto</label>
+          <select id="tipo">
+            <option value="diario">Diario</option>
+            <option value="cuponazo">Cuponazo</option>
+            <option value="sueldazo">Sueldazo</option>
+            <option value="rasca">Rasca</option>
+            <option value="triplex">Triplex</option>
+            <option value="superonce">Super Once</option>
+            <option value="midia">Mi Día</option>
+            <option value="eurojackpot">Eurojackpot</option>
+            <option value="extraordinario">Extraordinario</option>
+            <option value="resto">Otros</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="jornadas">Jornadas trabajadas (1–26)</label>
+          <input id="jornadas" type="number" min="1" max="26" value="20" />
+          <div class="muted small" style="margin-top:.25rem">Mínimo: 142€ × jornadas · Umbral: 210€ × jornadas</div>
+        </div>
+
+        <div>
+          <label for="vendidos">Unidades vendidas</label>
+          <input id="vendidos" type="number" min="0" value="0" />
+        </div>
+
+        <div>
+          <label for="precio">Precio por unidad (€)</label>
+          <input id="precio" type="number" step="0.01" min="0" value="2" />
+          <div class="muted small" style="margin-top:.25rem">Se autocompleta por producto; puedes cambiarlo.</div>
+        </div>
+
+        <div class="actions" style="align-items:end">
+          <button class="primary" id="btnCalc">🔢 Calcular</button>
+          <button id="btnReset">🧹 Limpiar</button>
+        </div>
       </div>
 
-      <div>
-        <label for="jornadas">Jornadas trabajadas (1–26)</label>
-        <input id="jornadas" type="number" min="1" max="26" value="20" />
-        <div class="muted" style="margin-top:.25rem">Se usan <b>Umbral=210€×jornadas</b> y <b>Mínimo=142€×jornadas</b>.</div>
-      </div>
-
-      <div>
-        <label for="vendidos">Unidades vendidas</label>
-        <input id="vendidos" type="number" min="0" value="0" />
-      </div>
-
-      <div>
-        <label for="precio">Precio por unidad (€)</label>
-        <input id="precio" type="number" step="0.01" min="0" value="2" />
-        <div class="muted" style="margin-top:.25rem">Se autocompleta por producto, pero puedes cambiarlo.</div>
-      </div>
-
-      <div class="actions" style="grid-column:1/-1">
-        <button class="primary" id="btnCalc">🔢 Calcular</button>
-        <button id="btnReset">🧹 Limpiar</button>
+      <div id="out" class="card" style="margin-top:1rem">
+        <div class="muted">Introduce datos y pulsa “Calcular”.</div>
       </div>
     </section>
 
-    <section id="out" class="card">
-      <div class="muted">Introduce datos y pulsa “Calcular”.</div>
+    <!-- REGISTRO DIARIO -->
+    <section class="card">
+      <h2 class="section-title">🗓️ Registro diario (se guarda solo en este dispositivo)</h2>
+      <div class="grid cols-3">
+        <div>
+          <label for="rFecha">Fecha</label>
+          <input id="rFecha" type="date" />
+        </div>
+        <div>
+          <label for="rTipo">Producto</label>
+          <select id="rTipo">
+            <option value="diario">Diario</option>
+            <option value="cuponazo">Cuponazo</option>
+            <option value="sueldazo">Sueldazo</option>
+            <option value="rasca">Rasca</option>
+            <option value="triplex">Triplex</option>
+            <option value="superonce">Super Once</option>
+            <option value="midia">Mi Día</option>
+            <option value="eurojackpot">Eurojackpot</option>
+            <option value="extraordinario">Extraordinario</option>
+            <option value="resto">Otros</option>
+          </select>
+        </div>
+        <div>
+          <label for="rUnidades">Unidades</label>
+          <input id="rUnidades" type="number" min="0" value="0" />
+        </div>
+        <div>
+          <label for="rPrecio">Precio (€)</label>
+          <input id="rPrecio" type="number" step="0.01" min="0" value="2" />
+        </div>
+        <div class="actions" style="align-items:end">
+          <button class="primary" id="btnAdd">➕ Añadir venta</button>
+          <button class="danger" id="btnClearMes">🗑️ Borrar mes visible</button>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:.75rem">
+        <div>
+          <label for="mesFiltro">Mes a mostrar</label>
+          <input id="mesFiltro" type="month" />
+        </div>
+        <div class="muted small" style="align-self:end">
+          Consejo: cambia el mes para ver/limpiar solo ese periodo.
+        </div>
+      </div>
+
+      <div id="tablaWrap">
+        <table id="tabla">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Producto</th>
+              <th class="num">Unid.</th>
+              <th class="num">Precio</th>
+              <th class="num">Importe</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody><!-- filas dinámicas --></tbody>
+        </table>
+      </div>
+
+      <div id="resumenMes" class="card" style="margin-top:1rem">
+        <div class="muted">No hay datos para este mes.</div>
+      </div>
     </section>
   </main>
 
@@ -97,87 +177,269 @@
       rasca:1, triplex:0.5, superonce:1, midia:1, eurojackpot:2,
       extraordinario:2.5, resto:1.5
     };
-
-    // % de comisión por producto cuando se supera umbral (ajusta si cambian)
-    const porcentajes = {
+    // % comisión (si se supera umbral mensual)
+    const pct = {
       diario:0.077, cuponazo:0.077, sueldazo:0.077,
       rasca:0.065, triplex:0.05, superonce:0.05, midia:0.05, eurojackpot:0.05,
       extraordinario:0.10, resto:0.04
     };
+    const LS_KEY = "calcOnce.v1.logs"; // [{id, fecha:'YYYY-MM-DD', tipo, unidades, precio}]
 
-    // ======= UI helpers =======
+    // ======= Helpers =======
     const $ = s => document.querySelector(s);
-    const fmt = n => (isNaN(n) ? "-" : n.toLocaleString("es-ES",{minimumFractionDigits:2, maximumFractionDigits:2}));
+    const fmt2 = n => (isNaN(n)? "-": n.toLocaleString("es-ES",{minimumFractionDigits:2, maximumFractionDigits:2}));
+    const todayStr = () => {
+      const d=new Date(), m=String(d.getMonth()+1).padStart(2,"0"), da=String(d.getDate()).padStart(2,"0");
+      return `${d.getFullYear()}-${m}-${da}`;
+    };
+    const monthStr = (d=new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+    const parseMonth = (ym) => { const [y,m]=ym.split("-").map(Number); return {y, m}; };
+    const sameMonth = (fecha, ym) => {
+      const d = new Date(fecha);
+      const {y,m} = parseMonth(ym);
+      return d.getFullYear()===y && (d.getMonth()+1)===m;
+    };
 
-    // Tema
-    const aplicarTema = t => document.documentElement.setAttribute("data-theme", t);
-    const cargarTema = () => localStorage.getItem("tema") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark":"light");
-    const guardarTema = t => localStorage.setItem("tema", t);
+    function loadLogs(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch{ return []; } }
+    function saveLogs(arr){ localStorage.setItem(LS_KEY, JSON.stringify(arr)); }
 
-    // ======= Lógica =======
+    // ======= Tema =======
+    const applyTheme = t => document.documentElement.setAttribute("data-theme", t);
+    const loadTheme = () => localStorage.getItem("tema") || (matchMedia("(prefers-color-scheme: dark)").matches? "dark":"light");
+    const saveTheme = t => localStorage.setItem("tema", t);
+
+    // ======= Calculadora rápida =======
     function autocompletarPrecio(){
       const tipo = $("#tipo").value;
-      if (precios[tipo] != null) $("#precio").value = precios[tipo];
+      if (precios[tipo]!=null) $("#precio").value = precios[tipo];
     }
-
-    function calcular(){
+    function calcularRapido(){
       const tipo = $("#tipo").value;
       const jornadas = Math.max(1, Math.min(26, parseInt($("#jornadas").value||"0")));
       const vendidos = Math.max(0, parseInt($("#vendidos").value||"0"));
       const precio = Math.max(0, parseFloat($("#precio").value||"0"));
 
-      // Importe vendido
       const total = vendidos * precio;
+      const minimo = 142 * jornadas;
+      const umbral = 210 * jornadas;
+      const p = pct[tipo] ?? 0;
+      const comision = total >= umbral ? total * p : 0;
 
-      // Tabla oficial lineal: Umbral=210€/jornada, Mínimo=142€/jornada
-      const umbral = jornadas * 210;
-      const minimo = jornadas * 142;
-
-      // Comisión solo si se supera el umbral
-      const pct = porcentajes[tipo] ?? 0;
-      const comision = total >= umbral ? total * pct : 0;
-
-      // Semáforo
       let pill = `<span class="pill bad">❌ No alcanzado el mínimo</span>`;
       if (total >= umbral) pill = `<span class="pill ok">✅ Superado el umbral</span>`;
       else if (total >= minimo) pill = `<span class="pill warn">⚠️ Entre mínimo y umbral (sin comisión)</span>`;
 
       $("#out").innerHTML = `
-        <div class="kpi">🧾 <b>${vendidos}</b> unidades × <b>${fmt(precio)} €</b> = <b class="mono">${fmt(total)} €</b></div>
-        <div class="kpi">📅 Jornadas: <b>${jornadas}</b> → Mínimo: <b class="mono">${fmt(minimo)} €</b> | Umbral: <b class="mono">${fmt(umbral)} €</b></div>
-        <div class="kpi">📈 Comisión aplicada: <b>${(pct*100).toFixed(1)}%</b></div>
-        <div class="kpi">💰 Ganancia estimada: <b class="mono">${fmt(comision)} €</b></div>
+        <div class="kpi">🧾 <b>${vendidos}</b> unidades × <b>${fmt2(precio)} €</b> = <b class="mono">${fmt2(total)} €</b></div>
+        <div class="kpi">📅 Jornadas: <b>${jornadas}</b> → Mínimo: <b class="mono">${fmt2(minimo)} €</b> | Umbral: <b class="mono">${fmt2(umbral)} €</b></div>
+        <div class="kpi">📈 Comisión aplicada: <b>${(p*100).toFixed(1)}%</b></div>
+        <div class="kpi">💰 Ganancia estimada: <b class="mono">${fmt2(comision)} €</b></div>
         <div style="margin-top:.5rem">${pill}</div>
-        <div class="muted" style="margin-top:.5rem">Nota: la comisión se calcula al superar el umbral de ${fmt(umbral)} €.</div>
       `;
     }
-
-    function reset(){
+    function resetRapido(){
       $("#vendidos").value = 0;
       autocompletarPrecio();
       $("#out").innerHTML = `<div class="muted">Introduce datos y pulsa “Calcular”.</div>`;
     }
 
-    // ======= Eventos =======
-    $("#tipo").addEventListener("change", autocompletarPrecio);
-    $("#btnCalc").addEventListener("click", calcular);
-    $("#btnReset").addEventListener("click", reset);
+    // ======= Registro Diario =======
+    function autocompletarPrecioRegistro(){
+      const t = $("#rTipo").value;
+      if (precios[t]!=null) $("#rPrecio").value = precios[t];
+    }
+
+    function addVenta(){
+      const fecha = $("#rFecha").value || todayStr();
+      const tipo = $("#rTipo").value;
+      const unidades = Math.max(0, parseInt($("#rUnidades").value||"0"));
+      const precio = Math.max(0, parseFloat($("#rPrecio").value||"0"));
+      if (!fecha) return alert("Selecciona una fecha.");
+      if (unidades<=0) return alert("Introduce unidades > 0.");
+
+      const logs = loadLogs();
+      logs.push({ id: crypto.randomUUID?.() || String(Date.now()), fecha, tipo, unidades, precio });
+      saveLogs(logs);
+
+      // limpiar unidades y refrescar
+      $("#rUnidades").value = 0;
+      renderTabla();
+      renderResumen();
+    }
+
+    function delVenta(id){
+      const logs = loadLogs().filter(x => x.id !== id);
+      saveLogs(logs);
+      renderTabla();
+      renderResumen();
+    }
+
+    function clearMes(){
+      const ym = $("#mesFiltro").value || monthStr();
+      const rest = loadLogs().filter(x => !sameMonth(x.fecha, ym));
+      if (rest.length === loadLogs().length) return alert("No hay registros en ese mes.");
+      if (!confirm("¿Eliminar todas las ventas del mes visible?")) return;
+      saveLogs(rest);
+      renderTabla();
+      renderResumen();
+    }
+
+    function filasMes(){
+      const ym = $("#mesFiltro").value || monthStr();
+      return loadLogs().filter(x => sameMonth(x.fecha, ym)).sort((a,b)=> a.fecha.localeCompare(b.fecha));
+    }
+
+    function renderTabla(){
+      const rows = filasMes();
+      const tb = $("#tabla tbody");
+      tb.innerHTML = "";
+      if (!rows.length){
+        tb.innerHTML = `<tr><td colspan="6" class="muted">Sin ventas en este mes.</td></tr>`;
+        return;
+      }
+      for (const r of rows){
+        const imp = r.unidades * r.precio;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${r.fecha}</td>
+          <td>${tituloProducto(r.tipo)}</td>
+          <td class="num">${r.unidades}</td>
+          <td class="num">${fmt2(r.precio)} €</td>
+          <td class="num mono">${fmt2(imp)} €</td>
+          <td class="table-actions">
+            <button class="danger small" title="Eliminar" data-id="${r.id}">Eliminar</button>
+          </td>
+        `;
+        tr.querySelector("button[data-id]").addEventListener("click", ()=> delVenta(r.id));
+        tb.appendChild(tr);
+      }
+    }
+
+    function tituloProducto(t){
+      const map = {
+        diario:"Diario", cuponazo:"Cuponazo", sueldazo:"Sueldazo",
+        rasca:"Rasca", triplex:"Triplex", superonce:"Super Once", midia:"Mi Día", eurojackpot:"Eurojackpot",
+        extraordinario:"Extraordinario", resto:"Otros"
+      };
+      return map[t] || t;
+    }
+
+    function resumenMes(){
+      const rows = filasMes();
+      // totales por producto
+      const porProd = {};
+      let total = 0;
+      const diasConVenta = new Set();
+      for (const r of rows){
+        const imp = r.unidades * r.precio;
+        total += imp;
+        diasConVenta.add(r.fecha);
+        if (!porProd[r.tipo]) porProd[r.tipo] = { unidades:0, importe:0 };
+        porProd[r.tipo].unidades += r.unidades;
+        porProd[r.tipo].importe  += imp;
+      }
+      const jornadas = diasConVenta.size; // 1 día con venta = 1 jornada trabajada
+      const minimo = 142 * jornadas;
+      const umbral = 210 * jornadas;
+
+      // comisión total solo si superamos umbral mensual
+      let comision = 0;
+      if (total >= umbral){
+        for (const t in porProd){
+          const p = pct[t] ?? 0;
+          comision += porProd[t].importe * p;
+        }
+      }
+      return { porProd, total, jornadas, minimo, umbral, comision };
+    }
+
+    function renderResumen(){
+      const { porProd, total, jornadas, minimo, umbral, comision } = resumenMes();
+      const wrap = $("#resumenMes");
+      const ym = $("#mesFiltro").value || monthStr();
+      if (!Object.keys(porProd).length){
+        wrap.innerHTML = `<div class="muted">No hay datos para <b>${ym}</b>.</div>`;
+        return;
+      }
+
+      let filas = "";
+      const orden = ["diario","cuponazo","sueldazo","rasca","triplex","superonce","midia","eurojackpot","extraordinario","resto"];
+      for (const t of orden){
+        if (!porProd[t]) continue;
+        filas += `
+          <tr>
+            <td>${tituloProducto(t)}</td>
+            <td class="num">${porProd[t].unidades}</td>
+            <td class="num mono">${fmt2(porProd[t].importe)} €</td>
+            <td class="num">${(pct[t]*100).toFixed(1)}%</td>
+          </tr>
+        `;
+      }
+
+      let pill = `<span class="pill bad">❌ No alcanzado el mínimo</span>`;
+      if (total >= umbral) pill = `<span class="pill ok">✅ Umbral superado (se aplica comisión)</span>`;
+      else if (total >= minimo) pill = `<span class="pill warn">⚠️ Entre mínimo y umbral (sin comisión)</span>`;
+
+      wrap.innerHTML = `
+        <div class="row">
+          <div>
+            <div class="kpi">📆 Mes: <b>${ym}</b></div>
+            <div class="kpi">🗓️ Jornadas con venta: <b>${jornadas}</b></div>
+            <div class="kpi">🧾 Total vendido: <b class="mono">${fmt2(total)} €</b></div>
+          </div>
+          <div>
+            <div class="kpi">📉 Mínimo: <b class="mono">${fmt2(minimo)} €</b></div>
+            <div class="kpi">📈 Umbral: <b class="mono">${fmt2(umbral)} €</b></div>
+            <div class="kpi">💰 Comisión mes: <b class="mono">${fmt2(comision)} €</b></div>
+          </div>
+        </div>
+        <div style="margin:.5rem 0 0">${pill}</div>
+
+        <h3 class="section-title" style="margin-top:1rem">Detalle por producto</h3>
+        <table>
+          <thead>
+            <tr><th>Producto</th><th class="num">Unidades</th><th class="num">Importe</th><th class="num">% comisión</th></tr>
+          </thead>
+          <tbody>${filas || `<tr><td colspan="4" class="muted">Sin detalle.</td></tr>`}</tbody>
+        </table>
+        <div class="muted small" style="margin-top:.5rem">
+          La comisión se aplica solo si el total mensual supera el <b>umbral</b>. Si no, es 0 €.
+        </div>
+      `;
+    }
+
+    // ======= Eventos / Inicio =======
+    // Calculadora rápida
+    $("#tipo").addEventListener("change", ()=>{ autocompletarPrecio(); });
+    $("#btnCalc").addEventListener("click", calcularRapido);
+    $("#btnReset").addEventListener("click", resetRapido);
+
+    // Registro
+    $("#rTipo").addEventListener("change", autocompletarPrecioRegistro);
+    $("#btnAdd").addEventListener("click", addVenta);
+    $("#btnClearMes").addEventListener("click", clearMes);
+    $("#mesFiltro").addEventListener("change", ()=>{ renderTabla(); renderResumen(); });
 
     // Tema
-    const temaInicial = cargarTema();
-    aplicarTema(temaInicial);
-    $("#btnTema").addEventListener("click", () => {
-      const nuevo = (document.documentElement.getAttribute("data-theme") === "dark") ? "light" : "dark";
-      aplicarTema(nuevo); guardarTema(nuevo);
+    const temaInicial = loadTheme(); applyTheme(temaInicial);
+    $("#btnTema").addEventListener("click", ()=> {
+      const nuevo = (document.documentElement.getAttribute("data-theme")==="dark") ? "light":"dark";
+      applyTheme(nuevo); saveTheme(nuevo);
     });
 
-    // Precarga precio correcto
+    // Valores iniciales
     autocompletarPrecio();
+    $("#rFecha").value = todayStr();
+    $("#mesFiltro").value = monthStr();
+    autocompletarPrecioRegistro();
+    renderTabla();
+    renderResumen();
 
-    // ======= PWA (opcional; silencioso si no existen archivos) =======
+    // ======= PWA (silencioso si no hay archivos) =======
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+        navigator.serviceWorker.register("./service-worker.js")
+          .catch(()=>{ /* sin SW también funciona */ });
       });
     }
   </script>
