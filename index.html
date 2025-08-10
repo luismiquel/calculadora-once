@@ -1,267 +1,507 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Calculadora de Comisiones ONCE 2025</title>
-  <meta name="theme-color" content="#d62828">
-  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f766e" />
+
+  <!-- Manifest (debe existir en la raíz). Si no lo tienes, no pasa nada: la app funciona igual -->
+  <link rel="manifest" href="./manifest.json">
 
   <style>
-    :root { --bg:#ffffff; --fg:#111; --primary:#d62828; --secondary:#fcbf49; --accent:#003049; --card:#fff7e6; }
-    [data-theme="dark"] { --bg:#1e1e1e; --fg:#f5f5f5; --primary:#ff595e; --secondary:#ffca3a; --accent:#8ac926; --card:#2a2a2a; }
+    :root{
+      --bg:#ffffff; --fg:#0f172a; --card:#f1f5f9; --muted:#475569;
+      --primary:#0f766e; --primary-fg:#ecfeff; --ring:#99f6e4;
+    }
+    [data-theme="dark"]{
+      --bg:#0b1220; --fg:#e2e8f0; --card:#111827; --muted:#94a3b8;
+      --primary:#14b8a6; --primary-fg:#022c22; --ring:#115e59;
+    }
     *{box-sizing:border-box}
-    body{margin:0;padding:16px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--fg)}
-    h1{margin:0 0 12px;color:var(--primary);font-size:1.5rem}
-    .wrap{max-width:780px;margin:0 auto}
-    .card{background:var(--card);border-radius:12px;padding:12px 14px;margin:10px 0}
-    label{display:block;margin:10px 0 4px}
-    select,input,button{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc;background:#fff;font-size:16px}
-    [data-theme="dark"] select,[data-theme="dark"] input{background:#141414;border:1px solid #444;color:var(--fg)}
-    button{cursor:pointer;background:var(--accent);color:#fff;border:none;font-weight:600}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .resultado{white-space:pre-line}
-    .alerta{padding:8px;border-radius:8px;margin-top:8px;font-weight:600}
-    .verde{background:#d4edda;color:#155724}
-    .naranja{background:#fff3cd;color:#856404}
-    .rojo{background:#f8d7da;color:#721c24}
-    .muted{opacity:.8;font-size:.95rem}
-    .topbar{display:flex;gap:8px;margin-bottom:8px}
-    .topbar button{width:auto;padding:8px 12px}
-    .nota{font-size:.9rem;opacity:.9}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:var(--bg);color:var(--fg)}
+    header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid #0001}
+    .wrap{max-width:960px;margin:0 auto;padding:1rem}
+    h1{margin:0.5rem 0;color:var(--primary)}
+    .grid{display:grid;gap:0.75rem}
+    @media (min-width:768px){.grid-2{grid-template-columns:1fr 1fr}}
+    .card{background:var(--card);border-radius:14px;padding:1rem;border:1px solid #0001}
+    label{font-weight:600;font-size:0.95rem}
+    input,select,button,textarea{
+      width:100%;padding:0.7rem;border-radius:10px;border:1px solid #0002;background:#fff0;
+      color:var(--fg);outline:none
+    }
+    input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px var(--ring)}
+    .row{display:grid;gap:0.5rem;margin:0.35rem 0}
+    .btn{background:var(--primary);color:var(--primary-fg);border:none;font-weight:700;cursor:pointer}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn-secondary{background:#0ea5e9}
+    .btn-ghost{background:#0000;color:var(--primary);border:1px solid var(--primary)}
+    .pill{display:inline-block;padding:0.25rem 0.6rem;border-radius:999px;background:#0002;margin-right:0.25rem;font-size:.85rem}
+    .alert{padding:.6rem;border-radius:10px;margin-top:.5rem}
+    .ok{background:#dcfce7;color:#14532d}
+    .warn{background:#fff7ed;color:#7c2d12}
+    .bad{background:#fee2e2;color:#7f1d1d}
+    table{width:100%;border-collapse:collapse;font-size:.95rem}
+    th,td{padding:.45rem;border-bottom:1px dashed #0002}
+    tfoot td{font-weight:700}
+    .right{text-align:right}
+    .muted{color:var(--muted)}
+    .tag{display:inline-block;background:#0002;padding:.2rem .5rem;border-radius:8px;margin:.15rem 0}
+    .chips{display:flex;gap:.35rem;flex-wrap:wrap}
+    .small{font-size:.85rem}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <h1 style="flex:1">Calculadora de Comisiones ONCE 2025</h1>
-      <button id="btnTema" type="button">🌗 Tema</button>
+<header>
+  <div class="wrap grid grid-2" style="align-items:center">
+    <div>
+      <h1>Calculadora de Comisiones ONCE 2025</h1>
+      <div class="muted small">Tramos + registro diario + resumen mensual + CSV</div>
     </div>
+    <div class="chips" style="justify-content:end">
+      <button id="themeBtn" class="btn-ghost" type="button">🌗 Tema</button>
+      <button id="exportBtn" class="btn-ghost" type="button">⬇️ Exportar CSV</button>
+      <button id="clearBtn" class="btn-ghost" type="button">🗑️ Vaciar datos</button>
+    </div>
+  </div>
+</header>
 
-    <div class="card">
-      <label>Tipo de producto</label>
+<main class="wrap grid grid-2">
+  <!-- CALCULADORA RÁPIDA -->
+  <section class="card">
+    <h2>1) Cálculo rápido</h2>
+    <div class="row">
+      <label for="tipo">Tipo de producto</label>
       <select id="tipo">
         <option value="diario">Diario (2€)</option>
         <option value="cuponazo">Cuponazo (3€)</option>
         <option value="sueldazo">Sueldazo (2€)</option>
-        <option value="rasca1">Rasca 1€</option>
-        <option value="rasca2">Rasca 2€</option>
-        <option value="rasca3">Rasca 3€</option>
-        <option value="rasca5">Rasca 5€</option>
-        <option value="rasca10">Rasca 10€</option>
+        <option value="rasca">Rasca (1-10€)</option>
         <option value="triplex">Triplex (0,50€)</option>
         <option value="superonce">Super Once (1€)</option>
         <option value="midia">Mi Día (1€)</option>
         <option value="eurojackpot">Eurojackpot (2€)</option>
         <option value="extraordinario">Extraordinario</option>
+        <option value="resto">Otros</option>
       </select>
+    </div>
 
+    <div class="grid">
       <div class="row">
-        <div>
-          <label>Días trabajados (1–25)</label>
-          <input id="dias" type="number" min="1" max="25" value="20" />
-        </div>
-        <div>
-          <label>Unidades vendidas</label>
-          <input id="vendidos" type="number" min="0" value="0" />
-        </div>
+        <label for="dias">Días trabajados (1–26)</label>
+        <input id="dias" type="number" min="1" max="26" value="20">
       </div>
-
       <div class="row">
-        <div>
-          <label>Precio unitario (€)</label>
-          <input id="precio" type="number" min="0" step="0.01" value="2" />
-        </div>
-        <div>
-          <label style="visibility:hidden">.</label>
-          <button id="btnCalcular" type="button">🔢 Calcular</button>
-        </div>
-      </div>
-
-      <div class="nota muted">
-        Nota: Para **Extraordinarios** se aplican tramos por número de cupones (12%–17%). Para el resto se usa el
-        esquema oficial por **Mínimo / Umbral y 8 tramos**; los importes de tramo escalan por jornadas.
+        <label for="unidades">Unidades vendidas</label>
+        <input id="unidades" type="number" min="0" value="0">
       </div>
     </div>
 
-    <div class="card">
-      <div id="resultado" class="resultado"></div>
+    <div class="row">
+      <label for="precio">Precio por unidad (€)</label>
+      <input id="precio" type="number" min="0" step="0.1" value="2">
+      <div class="muted small">Se autocompleta según el producto. Puedes cambiarlo si hace falta.</div>
     </div>
 
-    <div class="card muted">
-      <strong>Ayuda rápida</strong><br>
-      • Mínimo por jornada: 142 € &nbsp;|&nbsp; Umbral por jornada: 210 €<br>
-      • Tramos (por jornada) tras el Umbral: 289, 344, 400, 455, 510, 566, 677 €<br>
-      • Porcentajes por familia:<br>
-      &nbsp;&nbsp;— Muy alto: 1.5, 4, 7, 8.5, 9, 9.5, 10, 10.5 %<br>
-      &nbsp;&nbsp;— Alto: 2, 5, 8.5, 11.5, 12, 12.5, 13, 14 %<br>
-      &nbsp;&nbsp;— Resto: 2.5, 6, 10, 13, 14, 15, 16, 17.5 %
+    <div class="row">
+      <button id="calcBtn" class="btn">🔢 Calcular</button>
     </div>
-  </div>
 
-  <script>
-    // ---------- Tema ----------
-    const root = document.documentElement;
-    const btnTema = document.getElementById('btnTema');
-    btnTema.onclick = () => {
-      root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-      localStorage.setItem('calc-once-theme', root.getAttribute('data-theme'));
-    };
-    (function initTheme(){
-      const saved = localStorage.getItem('calc-once-theme');
-      if(saved) root.setAttribute('data-theme', saved);
-    })();
+    <div id="resultado" class="row"></div>
+  </section>
 
-    // ---------- Datos base ----------
-    const preciosPorDefecto = {
-      diario:2, cuponazo:3, sueldazo:2,
-      rasca1:1, rasca2:2, rasca3:3, rasca5:5, rasca10:10,
-      triplex:0.5, superonce:1, midia:1, eurojackpot:2,
-      extraordinario:2.5 // precio orientativo; ajustable
-    };
+  <!-- REGISTRO DIARIO -->
+  <section class="card">
+    <h2>2) Registro diario</h2>
+    <div class="grid">
+      <div class="row">
+        <label for="fecha">Fecha</label>
+        <input id="fecha" type="date">
+      </div>
+      <div class="row">
+        <label for="tipoDia">Producto</label>
+        <select id="tipoDia">
+          <option value="diario">Diario</option>
+          <option value="cuponazo">Cuponazo</option>
+          <option value="sueldazo">Sueldazo</option>
+          <option value="rasca">Rasca</option>
+          <option value="triplex">Triplex</option>
+          <option value="superonce">Super Once</option>
+          <option value="midia">Mi Día</option>
+          <option value="eurojackpot">Eurojackpot</option>
+          <option value="extraordinario">Extraordinario</option>
+          <option value="resto">Otros</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="udsDia">Unidades</label>
+        <input id="udsDia" type="number" min="0" value="0">
+      </div>
+      <div class="row">
+        <label for="precioDia">Precio (€)</label>
+        <input id="precioDia" type="number" min="0" step="0.1" value="2">
+      </div>
+    </div>
+    <div class="row">
+      <button id="addBtn" class="btn-secondary">➕ Añadir al historial</button>
+    </div>
 
-    // Familias para tramos
-    const FAMILIA = {
-      MUY_ALTO: 'MUY_ALTO',
-      ALTO: 'ALTO',
-      RESTO: 'RESTO',
-      EXTRA: 'EXTRA'
-    };
+    <div id="historialBox" class="row">
+      <table id="tablaHistorial">
+        <thead>
+          <tr>
+            <th>Fecha</th><th>Producto</th><th class="right">Unid.</th><th class="right">Precio</th><th class="right">Importe</th><th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr><td colspan="4" class="right">Total</td><td class="right" id="totalHist">0,00 €</td><td></td></tr>
+        </tfoot>
+      </table>
+      <div class="muted small">Se guarda automáticamente en tu dispositivo (localStorage).</div>
+    </div>
+  </section>
 
-    // Mapeo producto -> familia
-    const familiaPorProducto = {
-      diario: FAMILIA.RESTO,
-      cuponazo: FAMILIA.ALTO,       // puedes ajustar si tu centro los clasifica distinto
-      sueldazo: FAMILIA.ALTO,
-      rasca1: FAMILIA.RESTO,
-      rasca2: FAMILIA.RESTO,
-      rasca3: FAMILIA.RESTO,
-      rasca5: FAMILIA.RESTO,
-      rasca10: FAMILIA.RESTO,
-      triplex: FAMILIA.MUY_ALTO,
-      superonce: FAMILIA.MUY_ALTO,
-      midia: FAMILIA.MUY_ALTO,
-      eurojackpot: FAMILIA.MUY_ALTO,
-      extraordinario: FAMILIA.EXTRA
-    };
+  <!-- RESUMEN MENSUAL -->
+  <section class="card">
+    <h2>3) Resumen mensual</h2>
+    <div class="row">
+      <button id="resumenBtn" class="btn">📅 Calcular resumen</button>
+    </div>
+    <div id="resumenBox" class="row"></div>
+  </section>
 
-    // Tramos por familia (8 bandas tras Umbral)
-    const PORC = {
-      [FAMILIA.MUY_ALTO]: [1.5, 4.0, 7.0, 8.5, 9.0, 9.5, 10.0, 10.5],
-      [FAMILIA.ALTO]:     [2.0, 5.0, 8.5, 11.5, 12.0, 12.5, 13.0, 14.0],
-      [FAMILIA.RESTO]:    [2.5, 6.0, 10.0, 13.0, 14.0, 15.0, 16.0, 17.5]
-    };
+  <!-- AYUDA -->
+  <section class="card">
+    <h2>Ayuda rápida</h2>
+    <ul class="small">
+      <li>La comisión de productos estándar se aplica <b>solo si alcanzas el umbral</b> de la tabla (por jornadas).</li>
+      <li><b>Extraordinarios</b>: comisión por tramos de unidades (12%→17%).</li>
+      <li>El resumen mensual usa los <b>días únicos con ventas</b> como jornadas del mes.</li>
+      <li>Puedes exportar a CSV para revisar o enviar tus ventas.</li>
+    </ul>
+  </section>
+</main>
 
-    // Importes por jornada (base 1 jornada). Escalan * días.
-    const BASE = {
-      MINIMO: 142,
-      UMBRAL: 210,
-      TRAMOS: [289, 344, 400, 455, 510, 566, 677] // 7 adicionales tras umbral (total 8 bandas contando el umbral como 1ª barrera)
-    };
+<script>
+/* ------------------ Datos base ------------------ */
+const PRECIOS = {
+  diario:2, cuponazo:3, sueldazo:2, rasca:1,
+  triplex:0.5, superonce:1, midia:1, eurojackpot:2, extraordinario:2.5, resto:1.5
+};
 
-    // Tramos Extraordinarios (por número de cupones)
-    function porcentajeExtra(cant) {
-      if (cant >= 600) return 17;
-      if (cant >= 500) return 16;
-      if (cant >= 400) return 15;
-      if (cant >= 300) return 14;
-      if (cant >= 200) return 13;
-      if (cant >=   1) return 12;
-      return 0;
+// % de comisión estándar (solo si se alcanza UMBRAL). Ajustables si ONCE cambia.
+const PORC = {
+  diario:0.105, cuponazo:0.105, sueldazo:0.105,   // familia “Muy alto porcentaje”
+  rasca:0.065,                                     // rascas (aprox usada antes)
+  triplex:0.05, superonce:0.05, midia:0.05, eurojackpot:0.05, resto:0.06
+};
+
+// Tramos Extraordinarios por unidades
+function comisionExtraordinario(unidades, precio){
+  const tramos = [
+    {min:600, pct:0.17},
+    {min:500, pct:0.16},
+    {min:400, pct:0.15},
+    {min:300, pct:0.14},
+    {min:200, pct:0.13},
+    {min:1,   pct:0.12}
+  ];
+  const total = unidades * precio;
+  let pct = 0;
+  for(const t of tramos){ if(unidades >= t.min){ pct = t.pct; break; } }
+  return { total, pct, comision: total * pct };
+}
+
+// Tabla MÍNIMO/UMBRAL por jornadas (1–25). Fuente PDF accesible (valores €).
+// Índice = jornadas. [minimo, umbral]
+const TABLA = [
+  [0,0],        // 0 (sin usar)
+  [142,210],    // 1
+  [284,420],    // 2
+  [426,630],    // 3
+  [568,840],    // 4
+  [710,1050],   // 5
+  [852,1260],   // 6
+  [994,1470],   // 7
+  [1136,1680],  // 8
+  [1278,1890],  // 9
+  [1420,2100],  // 10
+  [1562,2310],  // 11
+  [1704,2520],  // 12
+  [1846,2730],  // 13
+  [1988,2940],  // 14
+  [2130,3150],  // 15
+  [2272,3360],  // 16
+  [2414,3570],  // 17
+  [2556,3780],  // 18
+  [2698,3990],  // 19
+  [2840,4200],  // 20
+  [2982,4410],  // 21
+  [3124,4620],  // 22
+  [3266,4830],  // 23
+  [3408,5040],  // 24
+  [3550,5250],  // 25
+  [3692,5460]   // 26 (estimación lineal; si no trabajas 26, no se usa)
+];
+
+/* ------------------ Utilidades ------------------ */
+const $ = (q)=>document.querySelector(q);
+const fmt = (n)=> (Number(n)||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+const fmtInt = (n)=> (Number(n)||0).toLocaleString('es-ES');
+const todayISO = ()=> new Date().toISOString().slice(0,10);
+
+/* ------------------ Tema ------------------ */
+const root = document.documentElement;
+const themeBtn = $('#themeBtn');
+(function initTheme(){
+  const saved = localStorage.getItem('calc_theme');
+  if(saved) root.dataset.theme = saved;
+})();
+themeBtn.addEventListener('click', ()=>{
+  const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  root.dataset.theme = next;
+  localStorage.setItem('calc_theme', next);
+});
+
+/* ------------------ Autocompletar precio ------------------ */
+const tipoSel = $('#tipo');
+const precioInp = $('#precio');
+function autoPrecio(){
+  const t = tipoSel.value;
+  if(PRECIOS[t]!=null) precioInp.value = PRECIOS[t];
+}
+tipoSel.addEventListener('change', autoPrecio);
+autoPrecio();
+
+/* ------------------ Cálculo rápido ------------------ */
+const diasInp = $('#dias');
+const udsInp = $('#unidades');
+const calcBtn = $('#calcBtn');
+const resultado = $('#resultado');
+
+calcBtn.addEventListener('click', ()=>{
+  const tipo = tipoSel.value;
+  const dias = Math.max(1, Math.min(26, parseInt(diasInp.value||'1',10)));
+  const uds  = Math.max(0, parseInt(udsInp.value||'0',10));
+  const precio = Math.max(0, parseFloat(precioInp.value||'0'));
+
+  const total = uds * precio;
+
+  if(tipo === 'extraordinario'){
+    const ce = comisionExtraordinario(uds, precio);
+    resultado.innerHTML = `
+      <div class="alert ok"><b>Extraordinario</b> por tramos</div>
+      <div>🔢 Vendidos: <b>${fmtInt(uds)}</b> × ${fmt(precio)} = <b>${fmt(ce.total)}</b></div>
+      <div>📈 Tramo aplicado: <b>${(ce.pct*100).toFixed(0)}%</b></div>
+      <div>💰 Comisión estimada: <b>${fmt(ce.comision)}</b></div>
+    `;
+    return;
+  }
+
+  // Mínimo / Umbral por jornadas
+  const [minimo, umbral] = TABLA[dias] || [0,0];
+
+  // % comisión según producto (solo si supera UMBRAL)
+  const pct = PORC[tipo] ?? 0;
+  const comision = total >= umbral ? total * pct : 0;
+
+  let clase = 'bad', msg='❌ No alcanzado el mínimo';
+  if(total >= umbral){ clase='ok'; msg='✅ Umbral superado: aplica comisión'; }
+  else if(total >= minimo){ clase='warn'; msg='⚠️ Mínimo superado: aún sin comisión'; }
+
+  resultado.innerHTML = `
+    <div>🔢 Vendidos: <b>${fmtInt(uds)}</b> × ${fmt(precio)} = <b>${fmt(total)}</b></div>
+    <div>📅 Días: <b>${dias}</b> → Mínimo: <b>${fmt(minimo)}</b> | Umbral: <b>${fmt(umbral)}</b></div>
+    <div>📈 Porcentaje (si ≥ umbral): <b>${(pct*100).toFixed(1)}%</b></div>
+    <div>💰 Comisión estimada: <b>${fmt(comision)}</b></div>
+    <div class="alert ${clase}">${msg}</div>
+  `;
+});
+
+/* ------------------ Registro diario (localStorage) ------------------ */
+const LS_KEY = 'calc_once_historial_v1';
+const fechaInp = $('#fecha');
+const tipoDiaSel = $('#tipoDia');
+const udsDiaInp = $('#udsDia');
+const precioDiaInp = $('#precioDia');
+const addBtn = $('#addBtn');
+const tbody = $('#tablaHistorial tbody');
+const totalHistTd = $('#totalHist');
+const clearBtn = $('#clearBtn');
+const exportBtn = $('#exportBtn');
+
+fechaInp.value = todayISO();
+
+tipoDiaSel.addEventListener('change', ()=>{
+  const t = tipoDiaSel.value;
+  if(PRECIOS[t]!=null) precioDiaInp.value = PRECIOS[t];
+});
+
+function loadHist(){
+  try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{return []}
+}
+function saveHist(arr){
+  localStorage.setItem(LS_KEY, JSON.stringify(arr));
+}
+function renderHist(){
+  const arr = loadHist();
+  tbody.innerHTML = '';
+  let total = 0;
+  arr.forEach((r,idx)=>{
+    const importe = r.unidades * r.precio;
+    total += importe;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.fecha}</td>
+      <td>${r.tipo}</td>
+      <td class="right">${fmtInt(r.unidades)}</td>
+      <td class="right">${fmt(r.precio)}</td>
+      <td class="right">${fmt(importe)}</td>
+      <td class="right"><button class="btn-ghost small" data-del="${idx}">Borrar</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  totalHistTd.textContent = fmt(total);
+}
+renderHist();
+
+tbody.addEventListener('click',(e)=>{
+  const btn = e.target.closest('button[data-del]');
+  if(!btn) return;
+  const idx = +btn.dataset.del;
+  const arr = loadHist();
+  arr.splice(idx,1);
+  saveHist(arr);
+  renderHist();
+});
+
+addBtn.addEventListener('click', ()=>{
+  const fecha = fechaInp.value || todayISO();
+  const tipo = tipoDiaSel.value;
+  const unidades = Math.max(0, parseInt(udsDiaInp.value||'0',10));
+  const precio = Math.max(0, parseFloat(precioDiaInp.value||'0'));
+
+  if(!unidades || !precio){ alert('Introduce unidades y precio'); return; }
+
+  const arr = loadHist();
+  arr.push({fecha,tipo,unidades,precio});
+  saveHist(arr);
+  renderHist();
+
+  // autoincremento simple para registrar rápido varios apuntes del mismo día
+  udsDiaInp.value = '0';
+});
+
+/* ------------------ Resumen mensual ------------------ */
+const resumenBtn = $('#resumenBtn');
+const resumenBox = $('#resumenBox');
+
+function resumenMensual(){
+  const arr = loadHist();
+  if(!arr.length){ resumenBox.innerHTML = '<div class="alert warn">Sin datos en el historial.</div>'; return; }
+
+  // Días únicos (jornadas)
+  const diasUnique = Array.from(new Set(arr.map(r=>r.fecha))).length;
+  const [minimo, umbral] = TABLA[Math.max(1, Math.min(26, diasUnique))] || [0,0];
+
+  // Totales por producto y total €
+  const totProd = {};
+  let totalMes = 0;
+  arr.forEach(r=>{
+    const imp = r.unidades * r.precio;
+    totalMes += imp;
+    totProd[r.tipo] = (totProd[r.tipo]||0) + imp;
+  });
+
+  // Comisión estándar (si supera UMBRAL)
+  let comisionEstandar = 0;
+  if(totalMes >= umbral){
+    for(const [tipo,imp] of Object.entries(totProd)){
+      if(tipo==='extraordinario') continue; // se calcula aparte
+      const pct = PORC[tipo] ?? 0;
+      comisionEstandar += imp * pct;
     }
+  }
 
-    // ---------- UI ----------
-    const selTipo = document.getElementById('tipo');
-    const inDias = document.getElementById('dias');
-    const inVendidos = document.getElementById('vendidos');
-    const inPrecio = document.getElementById('precio');
-    const btnCalcular = document.getElementById('btnCalcular');
-    const divRes = document.getElementById('resultado');
+  // Comisión extraordinarios (por tramos unidades)
+  const ventasExtra = arr.filter(r=>r.tipo==='extraordinario');
+  const unidadesExtra = ventasExtra.reduce((s,r)=>s+r.unidades,0);
+  const precioExtra = ventasExtra.length ? ventasExtra[0].precio : PRECIOS.extraordinario;
+  const ce = comisionExtraordinario(unidadesExtra, precioExtra);
 
-    // autocompletar precio al cambiar tipo
-    selTipo.addEventListener('change', () => {
-      const t = selTipo.value;
-      inPrecio.value = preciosPorDefecto[t] ?? 0;
-    });
+  const clase = totalMes>=umbral ? 'ok' : (totalMes>=minimo ? 'warn':'bad');
+  const msg   = totalMes>=umbral ? '✅ Umbral alcanzado' : (totalMes>=minimo ? '⚠️ Mínimo alcanzado, sin comisión estándar' : '❌ No se alcanza mínimo');
 
-    btnCalcular.addEventListener('click', calcular);
+  // Tabla por producto
+  const filas = Object.entries(totProd).sort((a,b)=>b[1]-a[1]).map(([tipo,imp])=>{
+    const pct = (tipo==='extraordinario') ? (ce.pct*100) : ((totalMes>=umbral ? (PORC[tipo]||0)*100 : 0));
+    const comi = (tipo==='extraordinario') ? 0 : (totalMes>=umbral ? imp*(PORC[tipo]||0) : 0);
+    return `<tr><td>${tipo}</td><td class="right">${fmt(imp)}</td><td class="right">${pct.toFixed(1)}%</td><td class="right">${fmt(comi)}</td></tr>`;
+  }).join('');
 
-    function calcular(){
-      const tipo = selTipo.value;
-      const dias = Math.max(1, Math.min(25, parseInt(inDias.value || '0', 10)));
-      const vendidos = Math.max(0, parseInt(inVendidos.value || '0', 10));
-      const precio = Math.max(0, parseFloat(inPrecio.value || '0'));
+  resumenBox.innerHTML = `
+    <div class="chips">
+      <span class="pill">Jornadas: <b>${diasUnique}</b></span>
+      <span class="pill">Mínimo: <b>${fmt(minimo)}</b></span>
+      <span class="pill">Umbral: <b>${fmt(umbral)}</b></span>
+    </div>
+    <div class="alert ${clase}">${msg}</div>
 
-      // Total vendido €
-      const total = vendidos * precio;
+    <table>
+      <thead><tr><th>Producto</th><th class="right">Importe</th><th class="right">% aplicado</th><th class="right">Comisión</th></tr></thead>
+      <tbody>${filas}</tbody>
+      <tfoot>
+        <tr><td>Total mes</td><td class="right">${fmt(totalMes)}</td><td></td><td class="right">${fmt(comisionEstandar)}</td></tr>
+        <tr><td>Extraordinarios</td><td class="right">${fmt(ce.total)}</td><td class="right">${(ce.pct*100).toFixed(0)}%</td><td class="right">${fmt(ce.comision)}</td></tr>
+        <tr><td colspan="3" class="right">Comisión total</td><td class="right">${fmt(comisionEstandar + ce.comision)}</td></tr>
+      </tfoot>
+    </table>
+    <div class="muted small">La comisión estándar se aplica solo si el total del mes supera el <b>umbral</b>.</div>
+  `;
+}
 
-      // Extraordinarios: tramos por cantidad de cupones
-      if (familiaPorProducto[tipo] === FAMILIA.EXTRA) {
-        const p = porcentajeExtra(vendidos);
-        const comision = total * (p/100);
-        divRes.innerHTML =
-          `🎯 Extraordinario\n`+
-          `🔢 Vendidos: ${vendidos} × ${precio.toFixed(2)} € = ${total.toFixed(2)} €\n`+
-          `📈 Tramo aplicado: ${p}%\n`+
-          `💰 Comisión estimada: ${comision.toFixed(2)} €`;
-        return;
-      }
+resumenBtn.addEventListener('click', resumenMensual);
 
-      // Resto de productos: mínimo/umbral y 8 bandas
-      const minimo = BASE.MINIMO * dias;
-      const umbral = BASE.UMBRAL * dias;
-      const escalones = [umbral, ...BASE.TRAMOS.map(v=>v * dias)]; // 8 valores
+/* ------------------ Exportar / Limpiar ------------------ */
+exportBtn.addEventListener('click', ()=>{
+  const arr = loadHist();
+  if(!arr.length){ alert('No hay datos.'); return; }
+  const header = 'fecha,tipo,unidades,precio,importe\n';
+  const rows = arr.map(r=>{
+    const imp = (r.unidades*r.precio).toFixed(2);
+    return `${r.fecha},${r.tipo},${r.unidades},${r.precio},${imp}`;
+  }).join('\n');
+  const blob = new Blob([header+rows], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'ventas_once.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
 
-      let idx = -1; // -1 => por debajo de umbral
-      for (let i = 0; i < escalones.length; i++) {
-        if (total >= escalones[i]) idx = i; else break;
-      }
+clearBtn.addEventListener('click', ()=>{
+  if(confirm('¿Seguro que quieres borrar todo el historial guardado en este dispositivo?')){
+    localStorage.removeItem(LS_KEY);
+    renderHist();
+    resumenBox.innerHTML = '';
+  }
+});
 
-      const familia = familiaPorProducto[tipo];
-      const tablaPorc = PORC[familia];
-
-      let pct = 0;
-      if (idx >= 0) pct = tablaPorc[Math.min(idx, tablaPorc.length-1)];
-
-      const comision = total * (pct/100);
-
-      const alertaClass = total >= umbral ? 'verde' : (total >= minimo ? 'naranja' : 'rojo');
-      const alertaTxt = total >= umbral
-        ? '✅ Umbral superado: aplican tramos de comisión'
-        : (total >= minimo ? '⚠️ Mínimo superado: sin comisión aún' : '❌ No alcanzas el mínimo');
-
-      const infoTramo = idx >= 0
-        ? `📊 Banda: ${idx+1} de 8 → ${pct}%`
-        : `📊 Banda: 0 de 8 (sin comisión)`;
-
-      divRes.innerHTML =
-        `🧾 ${nombreProducto(tipo)} (${familia.replace('_',' ')})\n`+
-        `🔢 Vendidos: ${vendidos} × ${precio.toFixed(2)} € = ${total.toFixed(2)} €\n`+
-        `📅 Días: ${dias} → Mínimo: ${eu(minimo)} | Umbral: ${eu(umbral)}\n`+
-        `${infoTramo}\n`+
-        `💰 Comisión estimada: ${eu(comision)}\n`+
-        `<div class="alerta ${alertaClass}">${alertaTxt}</div>`;
+/* ------------------ PWA: registro de Service Worker (opcional) ------------------ */
+if('serviceWorker' in navigator){
+  // Intento de registro sin romper la app si no existe el archivo
+  fetch('./service-worker.js', {method:'HEAD'}).then(r=>{
+    if(r.ok){
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(()=>console.log('SW registrado'))
+        .catch(()=>console.log('SW: registro fallido (ignorado)'));
+    }else{
+      console.log('SW no encontrado (404). Registro omitido.');
     }
-
-    function nombreProducto(t){
-      const map = {
-        diario:'Diario', cuponazo:'Cuponazo', sueldazo:'Sueldazo',
-        rasca1:'Rasca 1€', rasca2:'Rasca 2€', rasca3:'Rasca 3€', rasca5:'Rasca 5€', rasca10:'Rasca 10€',
-        triplex:'Triplex', superonce:'Super Once', midia:'Mi Día', eurojackpot:'Eurojackpot',
-        extraordinario:'Extraordinario'
-      };
-      return map[t] || t;
-    }
-    const eu = n => n.toLocaleString('es-ES',{style:'currency',currency:'EUR'});
-
-    // ---------- PWA: registro SW (sin iconos) ----------
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js')
-          .then(r => console.log('SW registrado', r.scope))
-          .catch(err => console.log('SW no registrado', err));
-      });
-    }
-  </script>
+  }).catch(()=>console.log('SW: fetch HEAD error (omitido)'));
+}
+</script>
 </body>
 </html>
