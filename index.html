@@ -4,9 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Calculadora Comisiones ONCE 2025</title>
-
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">💶</text></svg>'>
   <meta name="theme-color" content="#0b1320">
 
   <style>
@@ -58,6 +55,14 @@
     .badge.bad{background:color-mix(in oklab,var(--bad) 30%, var(--badge));border-color:transparent;color:#fff}
     .nowrap{white-space:nowrap}
     .row-actions{display:flex;gap:6px;justify-content:flex-end}
+
+    /* Steppers (-5/-1/+1/+5/+10) */
+    .stepper-wrap{display:flex;gap:6px;align-items:center}
+    .stepper{display:flex;gap:6px}
+    .stepper button{padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--fg);cursor:pointer}
+    .stepper button:focus{outline:var(--focus)}
+    .stepper input{min-width:110px}
+    .stepper button.neg{border-color:var(--bad)}
   </style>
 </head>
 <body>
@@ -114,7 +119,7 @@
         <h3 style="margin-top:12px">Productos activos</h3>
         <div class="grid">
           <div><label>Triples (0,50€ por apuesta)</label><input type="number" id="nTriples" min="0" step="1" placeholder="0" /></div>
-          <div><label>SuperONCE (importe en €)</label><input type="number" id="eurosSuperonce" min="0" step="1" placeholder="0" /></div>
+          <div><label>SuperONCE (importe en €)</label><input type="number" id="eurosSuperonce" min="0" step="0.5" placeholder="0" /></div>
           <div><label>Mi Día (1€ por apuesta)</label><input type="number" id="nMiDia" min="0" step="1" placeholder="0" /></div>
           <div><label>Eurojackpot (2€ por apuesta)</label><input type="number" id="nEurojackpot" min="0" step="1" placeholder="0" /></div>
         </div>
@@ -125,7 +130,7 @@
           <button class="btn secondary" id="cancelarEdicion" style="display:none">✖️ Cancelar edición</button>
           <button class="btn secondary" id="limpiarForm">↺ Limpiar</button>
         </div>
-        <p class="tips">Por defecto <b>se suma</b> a lo ya guardado. En modo edición puedes <b>reemplazar</b> el día completo.</p>
+        <p class="tips">Por defecto <b>se suma</b> a lo ya guardado. En modo edición puedes <b>reemplazar</b> el día completo. Usa los botones <b>-5/-1/+1/+5/+10</b> para ir más rápido.</p>
       </section>
 
       <section class="card">
@@ -265,7 +270,6 @@
     // ---------- Helpers ----------
     const EL = (id)=>document.getElementById(id);
 
-    // Formateo determinista "es-ES"
     function fmtEur(n){
       const s = (Number(n)||0).toFixed(2);
       const [ent, dec] = s.split('.');
@@ -286,9 +290,9 @@
     // Storage keys
     const KEY = 'calcOnce.diario.v2';
     const THEME_KEY = 'calcOnce.theme';
-    const JORNADAS_KEY = 'calcOnce.jornadasManual'; // {enabled:boolean, value:number}
-    const PCTS_KEY = 'calcOnce.porcentajes';        // {muyAlto, alto, resto, extra}
-    const UNDO_KEY = 'calcOnce.undo';               // snapshot para deshacer
+    const JORNADAS_KEY = 'calcOnce.jornadasManual';
+    const PCTS_KEY = 'calcOnce.porcentajes';
+    const UNDO_KEY = 'calcOnce.undo';
 
     // ---------- Elementos ----------
     const fecha = EL('fecha');
@@ -355,15 +359,14 @@
     const comResto = EL('comResto');
     const comExtra = EL('comExtra');
 
-    // Estado de edición
     let editDateISO = null;
 
-    // ---------- Inicializar fecha y mes ----------
+    // Fecha/mes actuales
     const today = new Date();
-    if (fecha) fecha.valueAsDate = today;
-    if (mesSel) mesSel.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+    fecha.valueAsDate = today;
+    mesSel.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
 
-    // ---------- Tema ----------
+    // Tema
     (function initTheme(){
       let saved = localStorage.getItem(THEME_KEY);
       if(!saved){
@@ -391,7 +394,7 @@
       });
     })();
 
-    // ---------- Storage ----------
+    // Storage
     const load = ()=>{ try{ return JSON.parse(localStorage.getItem(KEY) || '{}'); }catch{ return {}; } };
     const save = (data)=> localStorage.setItem(KEY, JSON.stringify(data));
     const snapshot = ()=> localStorage.getItem(KEY) || '{}';
@@ -405,39 +408,60 @@
     const loadPcts = ()=>{ try{ return JSON.parse(localStorage.getItem(PCTS_KEY) || '{}'); }catch{ return {}; } };
     const savePcts = (p)=> localStorage.setItem(PCTS_KEY, JSON.stringify(p||{}));
 
-    // ---------- Normaliza entradas ----------
-    function readEntryFromForm(){
-      return {
-        diario: clampInt(nDiario.value),
-        cuponazo: clampInt(nCuponazo.value),
-        sueldazo: clampInt(nSueldazo.value),
-        r1: clampInt(libroR1.value),
-        r2: clampInt(libroR2.value),
-        r3: clampInt(libroR3.value),
-        r5: clampInt(libroR5.value),
-        r10: clampInt(libroR10.value),
-        triples: clampInt(nTriples.value),
-        superonce: clampMoney(eurosSuperonce.value),
-        miDia: clampInt(nMiDia.value),
-        eurojackpot: clampInt(nEurojackpot.value),
-        tipo: tipoJornada.value || 'libre'
-      };
+    // ---- Atajos -5/-1/+1/+5/+10 ----
+    function attachSteppers(ids, steps=[-5,-1,1,5,10]){
+      ids.forEach(id=>{
+        const input = document.getElementById(id);
+        if(!input || input.dataset.stepper==="1") return;
+        input.dataset.stepper = "1";
+
+        const wrap = document.createElement('div');
+        wrap.className = 'stepper-wrap';
+        const btns = document.createElement('div');
+        btns.className = 'stepper';
+
+        input.parentElement.insertBefore(wrap, input);
+        wrap.appendChild(input);
+        wrap.appendChild(btns);
+
+        steps.forEach(s=>{
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = `${s>0?'+':''}${s}`;
+          if(s<0) b.classList.add('neg');
+          b.addEventListener('click', ()=>{
+            const isMoney = input.id === 'eurosSuperonce';
+            const cur = Number(input.value||0);
+            let next = cur + s;
+
+            if(isMoney){
+              if(next < 0) next = 0;
+              if(Math.abs(next) < 1e-10) next = 0;
+              input.value = String(next);
+            }else{
+              next = Math.max(0, Math.floor(next));
+              input.value = String(next);
+            }
+
+            input.dispatchEvent(new Event('input', {bubbles:true}));
+          });
+          btns.appendChild(b);
+        });
+      });
     }
 
-    // ---------- Cálculos ----------
+    // Cálculos
     function calcTotal(entry){
       const totalCupones = (entry.diario||0)*PRICES.diario + (entry.cuponazo||0)*PRICES.cuponazo + (entry.sueldazo||0)*PRICES.sueldazo;
       const totalRascas = (entry.r1||0)*LIBROS_RASCAS.r1 + (entry.r2||0)*LIBROS_RASCAS.r2 + (entry.r3||0)*LIBROS_RASCAS.r3 + (entry.r5||0)*LIBROS_RASCAS.r5 + (entry.r10||0)*LIBROS_RASCAS.r10;
       const totalActivos = (entry.triples||0)*PRICES.triples + (entry.superonce||0) + (entry.miDia||0)*PRICES.miDia + (entry.eurojackpot||0)*PRICES.eurojackpot;
       return totalCupones + totalRascas + totalActivos + (entry.extraEur||0);
     }
-
     function jornadasCalculadas(month){
       let j = 0;
       for(const f of Object.keys(month)){ if(calcTotal(month[f]) > 0) j++; }
       return j;
     }
-
     function eurosPorCategorias(month){
       let muyAlto=0, alto=0, resto=0, extra=0;
       for(const f of Object.keys(month)){
@@ -457,7 +481,7 @@
     function mondayOf(d){ const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; }
     function sundayOf(d){ const m=mondayOf(d); const s=new Date(m); s.setDate(m.getDate()+6); s.setHours(23,59,59,999); return s; }
 
-    // ---------- Render principal ----------
+    // Render
     function render(){
       const yyyymm = mesSel.value;
       const month = (function(){ const d = load(); return d[yyyymm] || {}; })();
@@ -593,7 +617,6 @@
           const data = load();
           const e = data[yyyymm]?.[f];
           if(!e) return;
-          // Entrar en modo edición
           editDateISO = f;
           fecha.value = f;
           nDiario.value = e.diario||0; nCuponazo.value = e.cuponazo||0; nSueldazo.value = e.sueldazo||0;
@@ -613,7 +636,6 @@
       btnUndo.disabled = !canUndo();
     }
 
-    // Sumar y reemplazar
     function sumaGuardada(prev, add){
       const out = Object.assign({}, prev||{});
       const keys = ['diario','cuponazo','sueldazo','r1','r2','r3','r5','r10','triples','superonce','miDia','eurojackpot','extraEur','tipo'];
@@ -630,8 +652,9 @@
       guardarDia.textContent='💾 Guardar (sumar)';
     }
 
-    // Semanas (L–D)
     function renderSemanas(yyyymm, month){
+      const tbodySem = document.querySelector('#tablaSemanas tbody');
+      const tfootSem = document.querySelector('#tablaSemanas tfoot');
       tbodySem.innerHTML=''; tfootSem.innerHTML='';
       const weeks = {};
       let totalMes=0, totalJornadas=0, totalMin=0, totalUmb=0;
@@ -685,31 +708,67 @@
       }
     }
 
-    // ---------- Listeners ----------
+    // Guardar día (sumar)
     guardarDia.addEventListener('click',()=>{
       if(!fecha.value){ alert('Selecciona una fecha.'); return; }
       const d = new Date(fecha.value);
       const yyyymm = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
       const key = d.toISOString().slice(0,10);
 
-      const entry = readEntryFromForm();
-      const data = load(); data[yyyymm] = data[yyyymm] || {};
+      const entry = {
+        diario: clampInt(nDiario.value),
+        cuponazo: clampInt(nCuponazo.value),
+        sueldazo: clampInt(nSueldazo.value),
+        r1: clampInt(libroR1.value),
+        r2: clampInt(libroR2.value),
+        r3: clampInt(libroR3.value),
+        r5: clampInt(libroR5.value),
+        r10: clampInt(libroR10.value),
+        triples: clampInt(nTriples.value),
+        superonce: clampMoney(eurosSuperonce.value),
+        miDia: clampInt(nMiDia.value),
+        eurojackpot: clampInt(nEurojackpot.value),
+        tipo: tipoJornada.value || 'libre'
+      };
+
+      const data = load();
+      data[yyyymm] = data[yyyymm] || {};
       pushUndo();
-      data[yyyymm][key] = sumaGuardada(data[yyyymm][key], entry); // SUMA
-      save(data); render();
+      data[yyyymm][key] = sumaGuardada(data[yyyymm][key], entry);
+      save(data);
+      render();
     });
 
+    // Guardar día (reemplazar)
     guardarReemplazar.addEventListener('click',()=>{
       if(!fecha.value){ alert('Selecciona una fecha.'); return; }
       const d = new Date(fecha.value);
       const yyyymm = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
       const key = d.toISOString().slice(0,10);
 
-      const entry = readEntryFromForm();
-      const data = load(); data[yyyymm] = data[yyyymm] || {};
+      const entry = {
+        diario: clampInt(nDiario.value),
+        cuponazo: clampInt(nCuponazo.value),
+        sueldazo: clampInt(nSueldazo.value),
+        r1: clampInt(libroR1.value),
+        r2: clampInt(libroR2.value),
+        r3: clampInt(libroR3.value),
+        r5: clampInt(libroR5.value),
+        r10: clampInt(libroR10.value),
+        triples: clampInt(nTriples.value),
+        superonce: clampMoney(eurosSuperonce.value),
+        miDia: clampInt(nMiDia.value),
+        eurojackpot: clampInt(nEurojackpot.value),
+        tipo: tipoJornada.value || 'libre'
+      };
+
+      const data = load();
+      data[yyyymm] = data[yyyymm] || {};
       pushUndo();
-      data[yyyymm][key] = entry; // REEMPLAZA
-      save(data); salirEdicion(); render();
+      data[yyyymm][key] = entry;
+      save(data);
+      salirEdicion();
+      render();
     });
 
     cancelarEdicion.addEventListener('click',()=>{ salirEdicion(); });
@@ -720,10 +779,7 @@
 
     mesSel.addEventListener('change', render);
 
-    btnUndo.addEventListener('click',()=>{
-      if(!canUndo()) return;
-      doUndo(); render();
-    });
+    btnUndo.addEventListener('click',()=>{ if(!canUndo()) return; doUndo(); render(); });
 
     chkJornadasManual.addEventListener('change', ()=>{
       const yyyymm = mesSel.value;
@@ -734,7 +790,6 @@
       saveJornadasState(st);
       render();
     });
-
     inpJornadas.addEventListener('input', ()=>{
       const yyyymm = mesSel.value;
       const st = loadJornadasState();
@@ -744,6 +799,7 @@
       render();
     });
 
+    // Porcentajes
     savePct.addEventListener('click', ()=>{
       const p = { muyAlto:Number(pctMuyAlto.value||0), alto:Number(pctAlto.value||0), resto:Number(pctResto.value||0), extra:Number(pctExtra.value||0) };
       savePcts(p);
@@ -772,7 +828,7 @@
       a.href = URL.createObjectURL(blob); a.download = `ventas_${yyyymm}.csv`; a.click(); URL.revokeObjectURL(a.href);
     });
 
-    // BACKUP/RESTORE JSON (todo)
+    // BACKUP/RESTORE JSON
     exportJson.addEventListener('click',()=>{
       const all = { data: load(), jornadas: loadJornadasState(), pcts: loadPcts(), exportedAt: new Date().toISOString() };
       const blob = new Blob([JSON.stringify(all,null,2)],{type:'application/json'});
@@ -799,51 +855,31 @@
       importJson.value = '';
     });
 
-    // Borrar mes
-    resetMes.addEventListener('click',()=>{
-      const yyyymm = mesSel.value;
-      if(!confirm(`¿Borrar todos los datos de ${yyyymm}?`)) return;
-      const data = load(); if(data[yyyymm]){
-        pushUndo();
-        delete data[yyyymm]; save(data);
-      }
-      const st = loadJornadasState(); if(st[yyyymm]){ delete st[yyyymm]; saveJornadasState(st); }
-      render();
-    });
-
-    // ---------- Tests en consola ----------
+    // ---------- Tests ----------
     function runTests(){
       try{
-        console.log('%c[Tests] Iniciando...', 'color:#4da3ff');
-        // Test 1: formato exacto
+        console.log('[Tests] Iniciando...');
         console.assert(fmtEur(1234.5) === '1.234,50', 'fmtEur debería formatear 1.234,50');
-        // Test 2: calcTotal
         const sample = {diario:10, cuponazo:2, sueldazo:0, r1:1, r3:1, triples:4, superonce:12.5, miDia:3, eurojackpot:2};
         const expected = (10*2)+(2*3)+(0*2) + (1*100)+(1*150) + (4*0.5)+12.5+(3*1)+(2*2);
         console.assert(Math.abs(calcTotal(sample)-expected)<1e-9, 'calcTotal incorrecto');
-        // Test 3: jornadasCalculadas
         const m = { '2025-08-01':{diario:1}, '2025-08-02':{r1:0}, '2025-08-03':{superonce:5} };
         console.assert(jornadasCalculadas(m)===2, 'jornadasCalculadas debe ser 2');
-        // Test 4: eurosPorCategorias
         const ecat = eurosPorCategorias({'2025-08-01':{diario:1, r1:1, superonce:10}});
         console.assert(ecat.muyAlto===2 && ecat.alto===100 && ecat.resto===10, 'eurosPorCategorias fallo');
-        console.log('%c[Tests] OK', 'color:#1ea64b');
+        console.log('[Tests] OK');
       }catch(err){ console.warn('[Tests] error:', err); }
     }
 
-    // ---------- Inicial ----------
+    // Inicial: steppers + render + tests
+    attachSteppers([
+      'nDiario','nCuponazo','nSueldazo',
+      'libroR1','libroR2','libroR3','libroR5','libroR10',
+      'nTriples','eurosSuperonce','nMiDia','nEurojackpot'
+    ]);
     render();
     runTests();
   })();
-
-  // Service Worker (silencioso si falta)
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(reg => console.log('SW registrado', reg.scope))
-        .catch(() => console.warn('SW no encontrado (404). Registro omitido.'));
-    });
-  }
   </script>
 </body>
 </html>
