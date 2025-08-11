@@ -27,15 +27,11 @@ input[type="number"]:focus{outline:var(--focus)}
 .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .mono{font-variant-numeric:tabular-nums}
 .tips{font-size:13px;color:var(--muted)}
-
-/* Steppers */
 .stepper-wrap{display:flex;gap:6px;align-items:center}
 .stepper{display:flex;gap:6px}
 .stepper button{padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--fg);cursor:pointer}
 .stepper button:focus{outline:var(--focus)}
 .stepper button.neg{border-color:var(--bad)}
-
-/* Calendario */
 .cal-wrap{display:grid;gap:10px}
 .cal-head{display:flex;align-items:center;justify-content:space-between}
 .cal-head .nav{display:flex;gap:8px}
@@ -47,8 +43,6 @@ input[type="number"]:focus{outline:var(--focus)}
 .cal-day .dot{position:absolute;right:8px;bottom:8px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
 .cal-day.today{outline:var(--focus)}
 .cal-day.sel{box-shadow:inset 0 0 0 2px var(--accent)}
-
-/* Tabla Semana */
 table{width:100%;border-collapse:collapse}
 th,td{padding:8px;border-bottom:1px solid var(--border);text-align:right}
 th:first-child,td:first-child{text-align:left}
@@ -57,6 +51,27 @@ th:first-child,td:first-child{text-align:left}
 .badge.warn{background:color-mix(in oklab,var(--warn) 25%, transparent);border-color:transparent;color:#2a2400}
 .badge.bad{background:color-mix(in oklab,var(--bad) 25%, transparent);border-color:transparent;color:#2b0303}
 </style>
+
+<script>
+// ============== LIMPIEZA DE SW Y CACHÉS (anti-errores antiguos) ==============
+(function(){
+  // Desregistrar cualquier Service Worker previo
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs=>{
+      regs.forEach(r=>r.unregister());
+      console.log('[SW] Todos los service workers desregistrados');
+    }).catch(()=>{});
+  }
+  // Borrar cachés antiguas
+  if (window.caches && caches.keys) {
+    caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).then(()=>{
+      console.log('[SW] Cachés borradas');
+    }).catch(()=>{});
+  }
+  // Deshabilitar manifest.json si existía en deploys anteriores
+  // (No cargamos ninguno en esta página)
+})();
+</script>
 </head>
 <body>
 <div class="wrap">
@@ -121,7 +136,7 @@ th:first-child,td:first-child{text-align:left}
         <button id="btnReemplazar" class="btn secondary">💾 Guardar (reemplazar)</button>
       </div>
 
-      <p class="tips">Usa los botones rápidos –5/–1/+1/+5/+10 junto a cada campo. “Guardar (sumar)” acumula sobre lo ya guardado; “reemplazar” pisa el día.</p>
+      <p class="tips">“Guardar (sumar)” acumula sobre lo ya guardado. “Reemplazar” pisa el día. Usa los botones rápidos –5/–1/+1/+5/+10.</p>
 
       <div class="card" style="margin-top:10px">
         <div class="inline" style="justify-content:space-between">
@@ -152,41 +167,28 @@ th:first-child,td:first-child{text-align:left}
 
 <script>
 (function(){
-  // --- Configuración productos ---
+  // ---------- Configuración ----------
   const PRICES = { diario:2, cuponazo:3, sueldazo:2, triples:0.5, miDia:1, eurojackpot:2 };
-  const LIBROS_RASCAS = { r1:100, r2:100, r3:150, r5:150, r10:150 }; // € por libro
+  const LIBROS_RASCAS = { r1:100, r2:100, r3:150, r5:150, r10:150 };
   const MIN_DIA=142, UMBRAL_DIA=210;
 
-  const productos = {
-    normales: {
-      nDiario:{precio:2, comi:0.06}, nCuponazo:{precio:3, comi:0.06}, nSueldazo:{precio:2, comi:0.06},
-      libroR1:{precio:LIBROS_RASCAS.r1, comi:0.05}, libroR2:{precio:LIBROS_RASCAS.r2, comi:0.05},
-      libroR3:{precio:LIBROS_RASCAS.r3, comi:0.05}, libroR5:{precio:LIBROS_RASCAS.r5, comi:0.05},
-      libroR10:{precio:LIBROS_RASCAS.r10, comi:0.05},
-      nTriples:{precio:0.5, comi:0.05}, eurosSuperonce:{precio:1, comi:0.05}, nMiDia:{precio:1, comi:0.05}, nEurojackpot:{precio:2, comi:0.05}
-    },
-    extras: {
-      extNavidad:{precio:10, comi:0.06}, extVerano:{precio:6, comi:0.06},
-      extOnceOnce:{precio:6, comi:0.06}, extDiaPadre:{precio:5, comi:0.06}, extDiaMadre:{precio:5, comi:0.06}
-    }
-  };
-
-  // --- Estado y storage ---
   const KEY='once2025.data'; // { "YYYY-MM": { "YYYY-MM-DD": entry } }
-  const load = ()=>{ try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {}} };
-  const save = (obj)=> localStorage.setItem(KEY, JSON.stringify(obj));
 
-  let current = new Date(); // fecha seleccionada
+  // ---------- Estado ----------
   let data = load();
+  let current = new Date(); current.setHours(0,0,0,0);
 
-  // --- Utils fecha ---
+  // ---------- Utils ----------
   const pad2 = (n)=> String(n).padStart(2,'0');
   const yyyymm = (d)=> `${d.getFullYear()}-${pad2(d.getMonth()+1)}`;
   const iso = (d)=> `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
   function mondayOf(d){ const x=new Date(d); const wd=(x.getDay()+6)%7; x.setDate(x.getDate()-wd); x.setHours(0,0,0,0); return x; }
   function sundayOf(d){ const m=mondayOf(d); const s=new Date(m); s.setDate(m.getDate()+6); s.setHours(23,59,59,999); return s; }
+  const fmt€ = (n)=> (n||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2});
 
-  // --- Cálculos ---
+  function load(){ try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {}} }
+  function save(obj){ localStorage.setItem(KEY, JSON.stringify(obj)); }
+
   function calcTotalEntry(e){
     const totalCupones = (e.diario||0)*PRICES.diario + (e.cuponazo||0)*PRICES.cuponazo + (e.sueldazo||0)*PRICES.sueldazo;
     const totalRascas = (e.r1||0)*LIBROS_RASCAS.r1 + (e.r2||0)*LIBROS_RASCAS.r2 + (e.r3||0)*LIBROS_RASCAS.r3 + (e.r5||0)*LIBROS_RASCAS.r5 + (e.r10||0)*LIBROS_RASCAS.r10;
@@ -202,9 +204,8 @@ th:first-child,td:first-child{text-align:left}
              + (e.extNavidad||0)*10*0.06 + (e.extVerano||0)*6*0.06 + (e.extOnceOnce||0)*6*0.06 + (e.extDiaPadre||0)*5*0.06 + (e.extDiaMadre||0)*5*0.06;
     return c;
   }
-  const fmt€ = (n)=> (n||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2});
 
-  // --- DOM refs ---
+  // ---------- DOM ----------
   const tituloMes = document.getElementById('tituloMes');
   const calDow = document.getElementById('calDow');
   const calDays = document.getElementById('calDays');
@@ -232,11 +233,11 @@ th:first-child,td:first-child{text-align:left}
   const totSem = document.getElementById('totSem');
   const objSem = document.getElementById('objSem');
 
-  // --- DOW encabezado ---
+  // ---------- DOW encabezado ----------
   const dows = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
   calDow.innerHTML = dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
 
-  // --- Render calendario ---
+  // ---------- Calendario ----------
   function renderCalendar(){
     const ym = yyyymm(current);
     tituloMes.textContent = current.toLocaleDateString('es-ES',{month:'long', year:'numeric'});
@@ -273,12 +274,12 @@ th:first-child,td:first-child{text-align:left}
     });
   }
 
-  // --- Cargar/guardar día ---
+  // ---------- Día ----------
   function getEntry(dateIso){
     const ym = dateIso.slice(0,7);
     return (data[ym] && data[ym][dateIso]) ? {...data[ym][dateIso]} : {};
   }
-  function setEntry(dateIso, entry, mode='replace'){ // mode: replace | add
+  function setEntry(dateIso, entry, mode='replace'){
     const ym = dateIso.slice(0,7);
     data[ym] = data[ym] || {};
     const prev = data[ym][dateIso] || {};
@@ -325,7 +326,7 @@ th:first-child,td:first-child{text-align:left}
     recalcDayTotals();
   }
 
-  // --- Semana ---
+  // ---------- Semana ----------
   function renderWeek(){
     const mon = mondayOf(current);
     const sun = sundayOf(current);
@@ -354,22 +355,19 @@ th:first-child,td:first-child{text-align:left}
     objSem.textContent = `${fmt€(j*MIN_DIA)} / ${fmt€(j*UMBRAL_DIA)}`;
   }
 
-  // --- Steppers –5/–1/+1/+5/+10 ---
+  // ---------- Steppers ----------
   function attachSteppers(ids, steps=[-5,-1,1,5,10]){
     ids.forEach(id=>{
       const input = document.getElementById(id);
       if(!input || input.dataset.stepper==="1") return;
       input.dataset.stepper = "1";
-
       const wrap = document.createElement('div');
       wrap.className = 'stepper-wrap';
       const btns = document.createElement('div');
       btns.className = 'stepper';
-
       input.parentElement.insertBefore(wrap, input);
       wrap.appendChild(input);
       wrap.appendChild(btns);
-
       steps.forEach(s=>{
         const b = document.createElement('button');
         b.type='button';
@@ -390,7 +388,7 @@ th:first-child,td:first-child{text-align:left}
   }
   attachSteppers(Object.keys(inputs));
 
-  // --- Listeners generales ---
+  // ---------- Listeners ----------
   Object.keys(inputs).forEach(id=>{
     document.getElementById(id).addEventListener('input', recalcDayTotals);
   });
@@ -418,18 +416,17 @@ th:first-child,td:first-child{text-align:left}
 
   btnPrev.addEventListener('click', ()=>{ current.setMonth(current.getMonth()-1); renderCalendar(); renderWeek(); });
   btnNext.addEventListener('click', ()=>{ current.setMonth(current.getMonth()+1); renderCalendar(); renderWeek(); });
-  btnHoy.addEventListener('click', ()=>{ current = new Date(); renderCalendar(); loadDay(); renderWeek(); });
+  btnHoy.addEventListener('click', ()=>{ current = new Date(); current.setHours(0,0,0,0); renderCalendar(); loadDay(); renderWeek(); });
 
-  // --- Inicial ---
-  current.setHours(0,0,0,0);
+  // ---------- Inicial ----------
+  const dowsHeader = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  document.getElementById('calDow').innerHTML = dowsHeader.map(d=>`<div class="cal-dow">${d}</div>`).join('');
   renderCalendar();
   loadDay();
   renderWeek();
 
   // Tests mínimos
-  try{
-    console.assert(fmt€(1234.5)==='1.234,50','fmt€ debe formatear 1.234,50');
-  }catch{}
+  try{ console.assert(fmt€(1234.5)==='1.234,50','fmt€ debe formatear 1.234,50'); }catch{}
 })();
 </script>
 </body>
