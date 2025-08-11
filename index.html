@@ -265,7 +265,7 @@
     // ---------- Helpers ----------
     const EL = (id)=>document.getElementById(id);
 
-    // Formateo determinista "es-ES" (puntos miles, coma decimales)
+    // Formateo determinista "es-ES"
     function fmtEur(n){
       const s = (Number(n)||0).toFixed(2);
       const [ent, dec] = s.split('.');
