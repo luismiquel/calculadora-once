@@ -66,7 +66,11 @@
       <h1>Calculadora ONCE 2025 — Registro diario con calendario</h1>
       <div class="switch">
         <button id="toggleTheme" class="pill" title="Cambiar tema">🌗 Tema</button>
-        <button id="exportCsv" class="pill" title="Exportar a CSV">⬇️ CSV</button>
+        <button id="btnUndo" class="pill" title="Deshacer último cambio">↩️ Deshacer</button>
+        <button id="exportCsv" class="pill" title="Exportar CSV del mes">⬇️ CSV mes</button>
+        <button id="exportJson" class="pill" title="Backup JSON (todo)">⬇️ Backup JSON</button>
+        <button id="importJsonBtn" class="pill" title="Importar JSON">⬆️ Importar JSON</button>
+        <input type="file" id="importJson" accept="application/json" style="display:none">
         <button id="resetMes" class="pill danger" title="Borrar datos del mes">🗑️ Borrar mes</button>
       </div>
     </div>
@@ -121,7 +125,7 @@
           <button class="btn secondary" id="cancelarEdicion" style="display:none">✖️ Cancelar edición</button>
           <button class="btn secondary" id="limpiarForm">↺ Limpiar</button>
         </div>
-        <p class="tips">Consejo: por defecto <b>se suma</b> a lo ya guardado. Si entras en modo edición, podrás <b>reemplazar</b> el día completo.</p>
+        <p class="tips">Por defecto <b>se suma</b> a lo ya guardado. En modo edición puedes <b>reemplazar</b> el día completo.</p>
       </section>
 
       <section class="card">
@@ -261,6 +265,8 @@
     // ---------- Helpers ----------
     const EL = (id)=>document.getElementById(id);
     const fmtEur = (n)=> (n||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2});
+    const clampInt = (v)=> Math.max(0, Number.isFinite(+v) ? Math.floor(+v) : 0);
+    const clampMoney = (v)=> Math.max(0, Number.isFinite(+v) ? +v : 0);
 
     // Precios / importes
     const PRICES = { diario: 2, cuponazo: 3, sueldazo: 2, triples: 0.5, miDia: 1, eurojackpot: 2 };
@@ -274,6 +280,7 @@
     const THEME_KEY = 'calcOnce.theme';
     const JORNADAS_KEY = 'calcOnce.jornadasManual'; // {enabled:boolean, value:number}
     const PCTS_KEY = 'calcOnce.porcentajes';        // {muyAlto, alto, resto, extra}
+    const UNDO_KEY = 'calcOnce.undo';               // guarda el último snapshot para deshacer
 
     // ---------- Elementos ----------
     const fecha = EL('fecha');
@@ -296,6 +303,10 @@
     const cancelarEdicion = EL('cancelarEdicion');
     const limpiarForm = EL('limpiarForm');
     const exportCsv = EL('exportCsv');
+    const exportJson = EL('exportJson');
+    const importJsonBtn = EL('importJsonBtn');
+    const importJson = EL('importJson');
+    const btnUndo = EL('btnUndo');
     const resetMes = EL('resetMes');
     const toggleTheme = EL('toggleTheme');
 
@@ -337,7 +348,7 @@
     const comExtra = EL('comExtra');
 
     // Estado de edición
-    let editDateISO = null; // si no es null, estamos editando ese YYYY-MM-DD
+    let editDateISO = null;
 
     // ---------- Inicializar fecha y mes ----------
     const today = new Date();
@@ -375,12 +386,35 @@
     // ---------- Storage ----------
     const load = ()=>{ try{ return JSON.parse(localStorage.getItem(KEY) || '{}'); }catch{ return {}; } };
     const save = (data)=> localStorage.setItem(KEY, JSON.stringify(data));
+    const snapshot = ()=> localStorage.getItem(KEY) || '{}';
+    const pushUndo = ()=> localStorage.setItem(UNDO_KEY, snapshot());
+    const canUndo = ()=> !!localStorage.getItem(UNDO_KEY);
+    const doUndo = ()=>{ const s = localStorage.getItem(UNDO_KEY); if(s){ localStorage.setItem(KEY, s); localStorage.removeItem(UNDO_KEY); } };
 
     const loadJornadasState = ()=>{ try{ return JSON.parse(localStorage.getItem(JORNADAS_KEY) || '{}'); }catch{ return {}; } };
     const saveJornadasState = (obj)=> localStorage.setItem(JORNADAS_KEY, JSON.stringify(obj||{}));
 
     const loadPcts = ()=>{ try{ return JSON.parse(localStorage.getItem(PCTS_KEY) || '{}'); }catch{ return {}; } };
     const savePcts = (p)=> localStorage.setItem(PCTS_KEY, JSON.stringify(p||{}));
+
+    // ---------- Normaliza entradas ----------
+    function readEntryFromForm(){
+      return {
+        diario: clampInt(nDiario.value),
+        cuponazo: clampInt(nCuponazo.value),
+        sueldazo: clampInt(nSueldazo.value),
+        r1: clampInt(libroR1.value),
+        r2: clampInt(libroR2.value),
+        r3: clampInt(libroR3.value),
+        r5: clampInt(libroR5.value),
+        r10: clampInt(libroR10.value),
+        triples: clampInt(nTriples.value),
+        superonce: clampMoney(eurosSuperonce.value),
+        miDia: clampInt(nMiDia.value),
+        eurojackpot: clampInt(nEurojackpot.value),
+        tipo: tipoJornada.value || 'libre'
+      };
+    }
 
     // ---------- Cálculos ----------
     function calcTotal(entry){
@@ -533,13 +567,21 @@
       tbody.querySelectorAll('button[data-del]').forEach(btn=>{
         btn.addEventListener('click',()=>{
           const f = btn.getAttribute('data-del');
+          const yyyymm = mesSel.value;
           const data = load();
-          if(data[yyyymm]){ delete data[yyyymm][f]; save(data); if(editDateISO===f) salirEdicion(); render(); }
+          if(data[yyyymm]){
+            pushUndo();
+            delete data[yyyymm][f];
+            save(data);
+            if(editDateISO===f) salirEdicion();
+            render();
+          }
         });
       });
       tbody.querySelectorAll('button[data-edit]').forEach(btn=>{
         btn.addEventListener('click',()=>{
           const f = btn.getAttribute('data-edit');
+          const yyyymm = mesSel.value;
           const data = load();
           const e = data[yyyymm]?.[f];
           if(!e) return;
@@ -558,6 +600,9 @@
 
       // Resumen por semanas
       renderSemanas(yyyymm, month);
+
+      // Botón deshacer visible si hay snapshot
+      btnUndo.disabled = !canUndo();
     }
 
     // Sumar y reemplazar
@@ -580,7 +625,7 @@
     // Semanas (L–D)
     function renderSemanas(yyyymm, month){
       tbodySem.innerHTML=''; tfootSem.innerHTML='';
-      const weeks = {}; // key 'YYYY-MM-DD|YYYY-MM-DD' (lunes|domingo)
+      const weeks = {};
       let totalMes=0, totalJornadas=0, totalMin=0, totalUmb=0;
 
       for(const f of Object.keys(month)){
@@ -639,14 +684,9 @@
       const yyyymm = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
       const key = d.toISOString().slice(0,10);
 
-      const entry = {
-        diario:+nDiario.value||0, cuponazo:+nCuponazo.value||0, sueldazo:+nSueldazo.value||0,
-        r1:+libroR1.value||0, r2:+libroR2.value||0, r3:+libroR3.value||0, r5:+libroR5.value||0, r10:+libroR10.value||0,
-        triples:+nTriples.value||0, superonce:+eurosSuperonce.value||0, miDia:+nMiDia.value||0, eurojackpot:+nEurojackpot.value||0,
-        tipo: tipoJornada.value
-      };
-
+      const entry = readEntryFromForm();
       const data = load(); data[yyyymm] = data[yyyymm] || {};
+      pushUndo();
       data[yyyymm][key] = sumaGuardada(data[yyyymm][key], entry); // SUMA
       save(data); render();
     });
@@ -657,14 +697,9 @@
       const yyyymm = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
       const key = d.toISOString().slice(0,10);
 
-      const entry = {
-        diario:+nDiario.value||0, cuponazo:+nCuponazo.value||0, sueldazo:+nSueldazo.value||0,
-        r1:+libroR1.value||0, r2:+libroR2.value||0, r3:+libroR3.value||0, r5:+libroR5.value||0, r10:+libroR10.value||0,
-        triples:+nTriples.value||0, superonce:+eurosSuperonce.value||0, miDia:+nMiDia.value||0, eurojackpot:+nEurojackpot.value||0,
-        tipo: tipoJornada.value
-      };
-
+      const entry = readEntryFromForm();
       const data = load(); data[yyyymm] = data[yyyymm] || {};
+      pushUndo();
       data[yyyymm][key] = entry; // REEMPLAZA
       save(data); salirEdicion(); render();
     });
@@ -677,13 +712,18 @@
 
     mesSel.addEventListener('change', render);
 
+    btnUndo.addEventListener('click',()=>{
+      if(!canUndo()) return;
+      doUndo(); render();
+    });
+
     chkJornadasManual.addEventListener('change', ()=>{
       const yyyymm = mesSel.value;
       const st = loadJornadasState();
       st[yyyymm] = st[yyyymm] || {enabled:false, value:0};
       st[yyyymm].enabled = chkJornadasManual.checked;
       if(!st[yyyymm].enabled){ st[yyyymm].value = 0; inpJornadas.value = ''; }
-      localStorage.setItem(JORNADAS_KEY, JSON.stringify(st));
+      saveJornadasState(st);
       render();
     });
 
@@ -692,13 +732,13 @@
       const st = loadJornadasState();
       st[yyyymm] = st[yyyymm] || {enabled:false, value:0};
       st[yyyymm].value = Math.max(0, Math.min(26, Number(inpJornadas.value||0)));
-      localStorage.setItem(JORNADAS_KEY, JSON.stringify(st));
+      saveJornadasState(st);
       render();
     });
 
     savePct.addEventListener('click', ()=>{
       const p = { muyAlto:Number(pctMuyAlto.value||0), alto:Number(pctAlto.value||0), resto:Number(pctResto.value||0), extra:Number(pctExtra.value||0) };
-      localStorage.setItem(PCTS_KEY, JSON.stringify(p));
+      savePcts(p);
       render();
     });
     resetPct.addEventListener('click', ()=>{
@@ -707,6 +747,7 @@
       render();
     });
 
+    // CSV MES
     exportCsv.addEventListener('click',()=>{
       const yyyymm = mesSel.value;
       const month = (load()[yyyymm]||{});
@@ -723,11 +764,42 @@
       a.href = URL.createObjectURL(blob); a.download = `ventas_${yyyymm}.csv`; a.click(); URL.revokeObjectURL(a.href);
     });
 
+    // BACKUP/RESTORE JSON (todo)
+    exportJson.addEventListener('click',()=>{
+      const all = { data: load(), jornadas: loadJornadasState(), pcts: loadPcts(), exportedAt: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(all,null,2)],{type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = `once_backup.json`; a.click(); URL.revokeObjectURL(a.href);
+    });
+    importJsonBtn.addEventListener('click',()=> importJson.click());
+    importJson.addEventListener('change', async (e)=>{
+      const file = e.target.files?.[0]; if(!file) return;
+      try{
+        const text = await file.text();
+        const obj = JSON.parse(text);
+        if(obj && obj.data){
+          pushUndo();
+          localStorage.setItem(KEY, JSON.stringify(obj.data||{}));
+          if(obj.jornadas) localStorage.setItem(JORNADAS_KEY, JSON.stringify(obj.jornadas));
+          if(obj.pcts) localStorage.setItem(PCTS_KEY, JSON.stringify(obj.pcts));
+          render();
+          alert('Importación completada.');
+        } else {
+          alert('Archivo no válido.');
+        }
+      }catch(err){ alert('Error al importar JSON.'); }
+      importJson.value = '';
+    });
+
+    // Borrar mes
     resetMes.addEventListener('click',()=>{
       const yyyymm = mesSel.value;
       if(!confirm(`¿Borrar todos los datos de ${yyyymm}?`)) return;
-      const data = load(); delete data[yyyymm]; save(data);
-      const st = loadJornadasState(); delete st[yyyymm]; localStorage.setItem(JORNADAS_KEY, JSON.stringify(st));
+      const data = load(); if(data[yyyymm]){
+        pushUndo();
+        delete data[yyyymm]; save(data);
+      }
+      const st = loadJornadasState(); if(st[yyyymm]){ delete st[yyyymm]; saveJornadasState(st); }
       render();
     });
 
