@@ -264,7 +264,15 @@
   (function(){
     // ---------- Helpers ----------
     const EL = (id)=>document.getElementById(id);
-    const fmtEur = (n)=> (n||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2});
+
+    // Formateo determinista "es-ES" (puntos miles, coma decimales)
+    function fmtEur(n){
+      const s = (Number(n)||0).toFixed(2);
+      const [ent, dec] = s.split('.');
+      const entMiles = ent.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      return `${entMiles},${dec}`;
+    }
+
     const clampInt = (v)=> Math.max(0, Number.isFinite(+v) ? Math.floor(+v) : 0);
     const clampMoney = (v)=> Math.max(0, Number.isFinite(+v) ? +v : 0);
 
@@ -280,7 +288,7 @@
     const THEME_KEY = 'calcOnce.theme';
     const JORNADAS_KEY = 'calcOnce.jornadasManual'; // {enabled:boolean, value:number}
     const PCTS_KEY = 'calcOnce.porcentajes';        // {muyAlto, alto, resto, extra}
-    const UNDO_KEY = 'calcOnce.undo';               // guarda el último snapshot para deshacer
+    const UNDO_KEY = 'calcOnce.undo';               // snapshot para deshacer
 
     // ---------- Elementos ----------
     const fecha = EL('fecha');
@@ -601,7 +609,7 @@
       // Resumen por semanas
       renderSemanas(yyyymm, month);
 
-      // Botón deshacer visible si hay snapshot
+      // Deshacer visible si hay snapshot
       btnUndo.disabled = !canUndo();
     }
 
@@ -807,8 +815,8 @@
     function runTests(){
       try{
         console.log('%c[Tests] Iniciando...', 'color:#4da3ff');
-        // Test 1: formato €
-        console.assert(fmtEur(1234.5).includes('1.234,50'), 'fmtEur debería formatear 1.234,50');
+        // Test 1: formato exacto
+        console.assert(fmtEur(1234.5) === '1.234,50', 'fmtEur debería formatear 1.234,50');
         // Test 2: calcTotal
         const sample = {diario:10, cuponazo:2, sueldazo:0, r1:1, r3:1, triples:4, superonce:12.5, miDia:3, eurojackpot:2};
         const expected = (10*2)+(2*3)+(0*2) + (1*100)+(1*150) + (4*0.5)+12.5+(3*1)+(2*2);
