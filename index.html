@@ -47,29 +47,25 @@ table{width:100%;border-collapse:collapse}
 th,td{padding:8px;border-bottom:1px solid var(--border);text-align:right}
 th:first-child,td:first-child{text-align:left}
 .badge{display:inline-block;padding:.15rem .5rem;border-radius:999px;border:1px solid var(--border);font-size:.8rem}
-.badge.good{background:color-mix(in oklab,var(--good) 25%, transparent);border-color:transparent;color:#052b11}
-.badge.warn{background:color-mix(in oklab,var(--warn) 25%, transparent);border-color:transparent;color:#2a2400}
-.badge.bad{background:color-mix(in oklab,var(--bad) 25%, transparent);border-color:transparent;color:#2b0303}
+.badge.good{background:rgba(46,204,113,.25);border-color:transparent;color:#052b11}
+.badge.warn{background:rgba(241,196,15,.25);border-color:transparent;color:#2a2400}
+.badge.bad{background:rgba(231,76,60,.25);border-color:transparent;color:#2b0303}
 </style>
 
 <script>
 // ============== LIMPIEZA DE SW Y CACHÉS (anti-errores antiguos) ==============
 (function(){
-  // Desregistrar cualquier Service Worker previo
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(regs=>{
       regs.forEach(r=>r.unregister());
       console.log('[SW] Todos los service workers desregistrados');
     }).catch(()=>{});
   }
-  // Borrar cachés antiguas
   if (window.caches && caches.keys) {
     caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).then(()=>{
       console.log('[SW] Cachés borradas');
     }).catch(()=>{});
   }
-  // Deshabilitar manifest.json si existía en deploys anteriores
-  // (No cargamos ninguno en esta página)
 })();
 </script>
 </head>
@@ -136,7 +132,7 @@ th:first-child,td:first-child{text-align:left}
         <button id="btnReemplazar" class="btn secondary">💾 Guardar (reemplazar)</button>
       </div>
 
-      <p class="tips">“Guardar (sumar)” acumula sobre lo ya guardado. “Reemplazar” pisa el día. Usa los botones rápidos –5/–1/+1/+5/+10.</p>
+      <p class="tips">“Guardar (sumar)” acumula; “reemplazar” pisa el día. Usa los botones –5/–1/+1/+5/+10.</p>
 
       <div class="card" style="margin-top:10px">
         <div class="inline" style="justify-content:space-between">
@@ -171,7 +167,6 @@ th:first-child,td:first-child{text-align:left}
   const PRICES = { diario:2, cuponazo:3, sueldazo:2, triples:0.5, miDia:1, eurojackpot:2 };
   const LIBROS_RASCAS = { r1:100, r2:100, r3:150, r5:150, r10:150 };
   const MIN_DIA=142, UMBRAL_DIA=210;
-
   const KEY='once2025.data'; // { "YYYY-MM": { "YYYY-MM-DD": entry } }
 
   // ---------- Estado ----------
@@ -184,7 +179,7 @@ th:first-child,td:first-child{text-align:left}
   const iso = (d)=> `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
   function mondayOf(d){ const x=new Date(d); const wd=(x.getDay()+6)%7; x.setDate(x.getDate()-wd); x.setHours(0,0,0,0); return x; }
   function sundayOf(d){ const m=mondayOf(d); const s=new Date(m); s.setDate(m.getDate()+6); s.setHours(23,59,59,999); return s; }
-  const fmt€ = (n)=> (n||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2});
+  const fmtEur = (n)=> (n||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2});
 
   function load(){ try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {}} }
   function save(obj){ localStorage.setItem(KEY, JSON.stringify(obj)); }
@@ -314,8 +309,8 @@ th:first-child,td:first-child{text-align:left}
 
   function recalcDayTotals(){
     const e = readInputs();
-    totDia.textContent = fmt€(calcTotalEntry(e));
-    comDia.textContent = fmt€(calcComisionEntry(e));
+    totDia.textContent = fmtEur(calcTotalEntry(e));
+    comDia.textContent = fmtEur(calcComisionEntry(e));
   }
 
   function loadDay(){
@@ -344,15 +339,15 @@ th:first-child,td:first-child{text-align:left}
       tr.innerHTML = `
         <td>${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][i]}</td>
         <td class="mono">${dIso}</td>
-        <td class="mono">${fmt€(total)}</td>
-        <td class="mono">${fmt€(MIN_DIA)} / ${fmt€(UMBRAL_DIA)}</td>
+        <td class="mono">${fmtEur(total)}</td>
+        <td class="mono">${fmtEur(MIN_DIA)} / ${fmtEur(UMBRAL_DIA)}</td>
         <td><span class="badge ${estado[0]}">${estado[1]}</span></td>
       `;
       tblBody.appendChild(tr);
       sum+=total;
     }
-    totSem.textContent = fmt€(sum);
-    objSem.textContent = `${fmt€(j*MIN_DIA)} / ${fmt€(j*UMBRAL_DIA)}`;
+    totSem.textContent = fmtEur(sum);
+    objSem.textContent = `${fmtEur(j*MIN_DIA)} / ${fmtEur(j*UMBRAL_DIA)}`;
   }
 
   // ---------- Steppers ----------
@@ -419,14 +414,12 @@ th:first-child,td:first-child{text-align:left}
   btnHoy.addEventListener('click', ()=>{ current = new Date(); current.setHours(0,0,0,0); renderCalendar(); loadDay(); renderWeek(); });
 
   // ---------- Inicial ----------
-  const dowsHeader = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-  document.getElementById('calDow').innerHTML = dowsHeader.map(d=>`<div class="cal-dow">${d}</div>`).join('');
   renderCalendar();
   loadDay();
   renderWeek();
 
   // Tests mínimos
-  try{ console.assert(fmt€(1234.5)==='1.234,50','fmt€ debe formatear 1.234,50'); }catch{}
+  try{ console.assert(fmtEur(1234.5)==='1.234,50','fmtEur debe formatear 1.234,50'); }catch{}
 })();
 </script>
 </body>
