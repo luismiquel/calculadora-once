@@ -190,9 +190,20 @@ th:first-child,td:first-child{text-align:left}
   const pad2 = (n)=> String(n).padStart(2,'0');
   const yyyymm = (d)=> `${d.getFullYear()}-${pad2(d.getMonth()+1)}`;
   const iso = (d)=> `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+
+  // Formateo robusto: siempre "1.234,56"
+  function fmtEur(n){
+    const num = Number.isFinite(n) ? n : 0;
+    const sign = num < 0 ? '-' : '';
+    const abs = Math.abs(num);
+    const fixed = abs.toFixed(2);           // "1234.50"
+    const [intPart, decPart] = fixed.split('.');
+    const withDots = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return sign + withDots + ',' + decPart;
+  }
+
   function mondayOf(d){ const x=new Date(d); const wd=(x.getDay()+6)%7; x.setDate(x.getDate()-wd); x.setHours(0,0,0,0); return x; }
   function sundayOf(d){ const m=mondayOf(d); const s=new Date(m); s.setDate(m.getDate()+6); s.setHours(23,59,59,999); return s; }
-  const fmtEur = (n)=> (n||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2});
 
   function load(){ try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {}} }
   function save(obj){ localStorage.setItem(KEY, JSON.stringify(obj)); }
@@ -481,7 +492,7 @@ th:first-child,td:first-child{text-align:left}
   renderWeek();
 
   // Tests mínimos
-  try{ console.assert(fmtEur(1234.5)==='1.234,50','fmtEur debe formatear 1.234,50'); }catch{}
+  try{ console.assert(fmtEur(1234.5)==='1.234,50','fmtEur debe formatear 1.234,50'); }catch(e){ console.error(e); }
 })();
 </script>
 </body>
