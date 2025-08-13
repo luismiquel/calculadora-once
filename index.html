@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Calculadora ONCE 2025 — Calendario</title>
+<title>Calculadora ONCE 2025 — Calendario + Extras por tramos</title>
 <style>
 :root{
   --bg:#0b1320; --fg:#e8eefc; --muted:#9bb0cc; --card:#111a2c; --accent:#4da3ff;
@@ -27,6 +27,9 @@ input[type="number"]:focus{outline:var(--focus)}
 .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .mono{font-variant-numeric:tabular-nums}
 .tips{font-size:13px;color:var(--muted)}
+.kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.kpi .box{background:rgba(255,255,255,.03);border:1px solid var(--border);padding:10px;border-radius:10px}
+.kpi .val{font-weight:600}
 .stepper-wrap{display:flex;gap:6px;align-items:center}
 .stepper{display:flex;gap:6px}
 .stepper button{padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--fg);cursor:pointer}
@@ -50,10 +53,11 @@ th:first-child,td:first-child{text-align:left}
 .badge.good{background:rgba(46,204,113,.25);border-color:transparent;color:#052b11}
 .badge.warn{background:rgba(241,196,15,.25);border-color:transparent;color:#2a2400}
 .badge.bad{background:rgba(231,76,60,.25);border-color:transparent;color:#2b0303}
+.sep{border:0;border-top:1px solid var(--border);margin:12px 0}
 </style>
 
 <script>
-// ============== LIMPIEZA DE SW Y CACHÉS (anti-errores antiguos) ==============
+// ===== Limpieza de Service Workers y cachés (evita errores antiguos) =====
 (function(){
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(regs=>{
@@ -74,7 +78,7 @@ th:first-child,td:first-child{text-align:left}
   <h1>Calculadora ONCE 2025 — Calendario</h1>
 
   <div class="grid two">
-    <!-- Columna izquierda: Calendario + Ventas -->
+    <!-- Izquierda: Calendario + Ventas -->
     <section class="card">
       <div class="cal-wrap">
         <div class="cal-head">
@@ -89,7 +93,7 @@ th:first-child,td:first-child{text-align:left}
         <div class="cal-grid" id="calDays"></div>
       </div>
 
-      <hr style="border:0;border-top:1px solid var(--border);margin:12px 0">
+      <hr class="sep">
 
       <h2 style="margin:0 0 6px">Día seleccionado: <span id="lblFecha" class="mono">—</span></h2>
 
@@ -117,7 +121,7 @@ th:first-child,td:first-child{text-align:left}
         <div><label>Eurojackpot (2€)</label><input type="number" id="nEurojackpot" min="0" step="1" placeholder="0"></div>
       </div>
 
-      <h3 style="margin:10px 0 6px">Extras (comisión 6%)</h3>
+      <h3 style="margin:10px 0 6px">Extras (comisión por tramos)</h3>
       <div class="grid" style="grid-template-columns:repeat(5,1fr);gap:8px">
         <div><label>Navidad (10€)</label><input type="number" id="extNavidad" min="0" step="1" placeholder="0"></div>
         <div><label>Verano (6€)</label><input type="number" id="extVerano" min="0" step="1" placeholder="0"></div>
@@ -132,17 +136,21 @@ th:first-child,td:first-child{text-align:left}
         <button id="btnReemplazar" class="btn secondary">💾 Guardar (reemplazar)</button>
       </div>
 
-      <p class="tips">“Guardar (sumar)” acumula; “reemplazar” pisa el día. Usa los botones –5/–1/+1/+5/+10.</p>
+      <p class="tips">“Guardar (sumar)” acumula; “reemplazar” pisa el día. Los extras aplican porcentaje por tramos según cupones del día.</p>
 
       <div class="card" style="margin-top:10px">
-        <div class="inline" style="justify-content:space-between">
-          <div>Total del día: <b class="mono" id="totDia">0,00</b> €</div>
-          <div>Comisión del día: <b class="mono" id="comDia">0,00</b> €</div>
+        <div class="kpi">
+          <div class="box"><div class="muted">Total del día (€)</div><div class="val mono" id="totDia">0,00</div></div>
+          <div class="box"><div class="muted">Comisión día (€)</div><div class="val mono" id="comDia">0,00</div></div>
+          <div class="box"><div class="muted">Extras cupones (día)</div><div class="val mono" id="extraCntDia">0</div></div>
+          <div class="box"><div class="muted">Extras (€ día)</div><div class="val mono" id="extraEurDia">0,00</div></div>
+          <div class="box"><div class="muted">% extras aplicado</div><div class="val mono" id="extraPctDia">0%</div></div>
+          <div class="box"><div class="muted">Comisión extras (día)</div><div class="val mono" id="comExtraDia">0,00</div></div>
         </div>
       </div>
     </section>
 
-    <!-- Columna derecha: Semana -->
+    <!-- Derecha: Semana -->
     <section class="card">
       <h2 style="margin:0 0 6px">Resumen semanal (L–D) de la fecha seleccionada</h2>
       <div class="tips" id="lblSemana">Semana: —</div>
@@ -156,6 +164,11 @@ th:first-child,td:first-child{text-align:left}
             <tr><th colspan="2">Total semana</th><th class="mono" id="totSem">0,00</th><th class="mono" id="objSem">0,00 / 0,00</th><th></th></tr>
           </tfoot>
         </table>
+      </div>
+      <div class="kpi" style="margin-top:10px">
+        <div class="box"><div class="muted">Extras cupones (semana)</div><div class="val mono" id="extraCntSem">0</div></div>
+        <div class="box"><div class="muted">Extras (€ semana)</div><div class="val mono" id="extraEurSem">0,00</div></div>
+        <div class="box"><div class="muted">Comisión extras (semana)</div><div class="val mono" id="comExtraSem">0,00</div></div>
       </div>
     </section>
   </div>
@@ -184,20 +197,44 @@ th:first-child,td:first-child{text-align:left}
   function load(){ try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {}} }
   function save(obj){ localStorage.setItem(KEY, JSON.stringify(obj)); }
 
+  // ---------- Comisión extras por TRAMOS ----------
+  function extraPctByCount(cnt){
+    if (cnt<=0) return 0;
+    if (cnt<=199) return 0.12;
+    if (cnt<=299) return 0.13;
+    if (cnt<=399) return 0.14;
+    if (cnt<=499) return 0.15;
+    if (cnt<=599) return 0.16;
+    return 0.17;
+  }
+  function extrasCount(e){
+    return (e.extNavidad||0)+(e.extVerano||0)+(e.extOnceOnce||0)+(e.extDiaPadre||0)+(e.extDiaMadre||0);
+  }
+  function extrasEuros(e){
+    return (e.extNavidad||0)*10 + (e.extVerano||0)*6 + (e.extOnceOnce||0)*6 + (e.extDiaPadre||0)*5 + (e.extDiaMadre||0)*5;
+  }
+
+  // ---------- Totales ----------
   function calcTotalEntry(e){
     const totalCupones = (e.diario||0)*PRICES.diario + (e.cuponazo||0)*PRICES.cuponazo + (e.sueldazo||0)*PRICES.sueldazo;
     const totalRascas = (e.r1||0)*LIBROS_RASCAS.r1 + (e.r2||0)*LIBROS_RASCAS.r2 + (e.r3||0)*LIBROS_RASCAS.r3 + (e.r5||0)*LIBROS_RASCAS.r5 + (e.r10||0)*LIBROS_RASCAS.r10;
     const totalActivos = (e.triples||0)*PRICES.triples + (e.superonce||0) + (e.miDia||0)*PRICES.miDia + (e.eurojackpot||0)*PRICES.eurojackpot;
-    const totalExtras = (e.extNavidad||0)*10 + (e.extVerano||0)*6 + (e.extOnceOnce||0)*6 + (e.extDiaPadre||0)*5 + (e.extDiaMadre||0)*5;
+    const totalExtras = extrasEuros(e);
     return totalCupones + totalRascas + totalActivos + totalExtras;
   }
+
   function calcComisionEntry(e){
-    const c =  (e.diario||0)*2*0.06 + (e.cuponazo||0)*3*0.06 + (e.sueldazo||0)*2*0.06
-             + (e.r1||0)*LIBROS_RASCAS.r1*0.05 + (e.r2||0)*LIBROS_RASCAS.r2*0.05 + (e.r3||0)*LIBROS_RASCAS.r3*0.05
-             + (e.r5||0)*LIBROS_RASCAS.r5*0.05 + (e.r10||0)*LIBROS_RASCAS.r10*0.05
-             + (e.triples||0)*0.5*0.05 + (e.superonce||0)*1*0.05 + (e.miDia||0)*1*0.05 + (e.eurojackpot||0)*2*0.05
-             + (e.extNavidad||0)*10*0.06 + (e.extVerano||0)*6*0.06 + (e.extOnceOnce||0)*6*0.06 + (e.extDiaPadre||0)*5*0.06 + (e.extDiaMadre||0)*5*0.06;
-    return c;
+    // Fijas (normales)
+    const cNorm =  (e.diario||0)*2*0.06 + (e.cuponazo||0)*3*0.06 + (e.sueldazo||0)*2*0.06
+                 + (e.r1||0)*LIBROS_RASCAS.r1*0.05 + (e.r2||0)*LIBROS_RASCAS.r2*0.05 + (e.r3||0)*LIBROS_RASCAS.r3*0.05
+                 + (e.r5||0)*LIBROS_RASCAS.r5*0.05 + (e.r10||0)*LIBROS_RASCAS.r10*0.05
+                 + (e.triples||0)*0.5*0.05 + (e.superonce||0)*1*0.05 + (e.miDia||0)*1*0.05 + (e.eurojackpot||0)*2*0.05;
+    // Extras por tramo (según nº de cupones del día)
+    const cnt = extrasCount(e);
+    const pct = extraPctByCount(cnt);
+    const eur = extrasEuros(e);
+    const cExt = eur * pct;
+    return { total: cNorm + cExt, cNorm, cExt, cnt, pct, eur };
   }
 
   // ---------- DOM ----------
@@ -220,13 +257,20 @@ th:first-child,td:first-child{text-align:left}
   };
   const inputEls = Object.fromEntries(Object.keys(inputs).map(id=>[id, document.getElementById(id)]));
 
-  const totDia = document.getElementById('totDia');
-  const comDia = document.getElementById('comDia');
+  const totDiaEl = document.getElementById('totDia');
+  const comDiaEl = document.getElementById('comDia');
+  const extraCntDiaEl = document.getElementById('extraCntDia');
+  const extraEurDiaEl = document.getElementById('extraEurDia');
+  const extraPctDiaEl = document.getElementById('extraPctDia');
+  const comExtraDiaEl = document.getElementById('comExtraDia');
 
   const lblSemana = document.getElementById('lblSemana');
   const tblBody = document.querySelector('#tablaSemana tbody');
   const totSem = document.getElementById('totSem');
   const objSem = document.getElementById('objSem');
+  const extraCntSemEl = document.getElementById('extraCntSem');
+  const extraEurSemEl = document.getElementById('extraEurSem');
+  const comExtraSemEl = document.getElementById('comExtraSem');
 
   // ---------- DOW encabezado ----------
   const dows = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
@@ -309,14 +353,20 @@ th:first-child,td:first-child{text-align:left}
 
   function recalcDayTotals(){
     const e = readInputs();
-    totDia.textContent = fmtEur(calcTotalEntry(e));
-    comDia.textContent = fmtEur(calcComisionEntry(e));
+    const totals = calcComisionEntry(e); // {total, cNorm, cExt, cnt, pct, eur}
+    const totalDia = calcTotalEntry(e);
+    totDiaEl.textContent = fmtEur(totalDia);
+    comDiaEl.textContent = fmtEur(totals.total);
+    extraCntDiaEl.textContent = totals.cnt;
+    extraEurDiaEl.textContent = fmtEur(totals.eur);
+    extraPctDiaEl.textContent = (totals.pct*100).toFixed(0)+'%';
+    comExtraDiaEl.textContent = fmtEur(totals.cExt);
   }
 
   function loadDay(){
     const dIso = iso(current);
     const e = getEntry(dIso);
-    lblFecha.textContent = dIso;
+    document.getElementById('lblFecha').textContent = dIso;
     writeInputs(e);
     recalcDayTotals();
   }
@@ -327,14 +377,18 @@ th:first-child,td:first-child{text-align:left}
     const sun = sundayOf(current);
     lblSemana.textContent = `Semana: ${iso(mon)} a ${iso(sun)}`;
     tblBody.innerHTML = '';
-    let sum=0, j=0;
+    let sumTotal=0, jornadas=0;
+    let extraCnt=0, extraEur=0, extraComi=0;
+
     for(let i=0;i<7;i++){
       const d=new Date(mon); d.setDate(mon.getDate()+i);
       const dIso=iso(d);
       const e = getEntry(dIso);
       const total = calcTotalEntry(e);
+      const comi = calcComisionEntry(e);
       const estado = total>=UMBRAL_DIA? ['good','Umbral'] : total>=MIN_DIA? ['warn','Mínimo'] : ['bad','Pendiente'];
-      if(total>0) j++;
+      if(total>0) jornadas++;
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][i]}</td>
@@ -344,10 +398,18 @@ th:first-child,td:first-child{text-align:left}
         <td><span class="badge ${estado[0]}">${estado[1]}</span></td>
       `;
       tblBody.appendChild(tr);
-      sum+=total;
+
+      sumTotal += total;
+      extraCnt  += comi.cnt;
+      extraEur  += comi.eur;
+      extraComi += comi.cExt; // acumulamos comisión de extras día a día (según tramo del día)
     }
-    totSem.textContent = fmtEur(sum);
-    objSem.textContent = `${fmtEur(j*MIN_DIA)} / ${fmtEur(j*UMBRAL_DIA)}`;
+
+    totSem.textContent = fmtEur(sumTotal);
+    objSem.textContent = `${fmtEur(jornadas*MIN_DIA)} / ${fmtEur(jornadas*UMBRAL_DIA)}`;
+    extraCntSemEl.textContent = extraCnt;
+    extraEurSemEl.textContent = fmtEur(extraEur);
+    comExtraSemEl.textContent = fmtEur(extraComi);
   }
 
   // ---------- Steppers ----------
@@ -381,26 +443,25 @@ th:first-child,td:first-child{text-align:left}
       });
     });
   }
-  attachSteppers(Object.keys(inputs));
 
   // ---------- Listeners ----------
   Object.keys(inputs).forEach(id=>{
     document.getElementById(id).addEventListener('input', recalcDayTotals);
   });
 
-  btnSumar.addEventListener('click', ()=>{
+  document.getElementById('btnSumar').addEventListener('click', ()=>{
     const dIso = iso(current);
     const e = readInputs();
     setEntry(dIso, e, 'add');
     loadDay(); renderCalendar(); renderWeek();
   });
-  btnReempl.addEventListener('click', ()=>{
+  document.getElementById('btnReemplazar').addEventListener('click', ()=>{
     const dIso = iso(current);
     const e = readInputs();
     setEntry(dIso, e, 'replace');
     loadDay(); renderCalendar(); renderWeek();
   });
-  btnReset.addEventListener('click', ()=>{
+  document.getElementById('resetDia').addEventListener('click', ()=>{
     if(!confirm('¿Reiniciar el día seleccionado?')) return;
     setEntry(iso(current), {
       diario:0,cuponazo:0,sueldazo:0,r1:0,r2:0,r3:0,r5:0,r10:0,triples:0,superonce:0,miDia:0,eurojackpot:0,
@@ -409,11 +470,12 @@ th:first-child,td:first-child{text-align:left}
     loadDay(); renderCalendar(); renderWeek();
   });
 
-  btnPrev.addEventListener('click', ()=>{ current.setMonth(current.getMonth()-1); renderCalendar(); renderWeek(); });
-  btnNext.addEventListener('click', ()=>{ current.setMonth(current.getMonth()+1); renderCalendar(); renderWeek(); });
-  btnHoy.addEventListener('click', ()=>{ current = new Date(); current.setHours(0,0,0,0); renderCalendar(); loadDay(); renderWeek(); });
+  document.getElementById('prevMes').addEventListener('click', ()=>{ current.setMonth(current.getMonth()-1); renderCalendar(); renderWeek(); });
+  document.getElementById('nextMes').addEventListener('click', ()=>{ current.setMonth(current.getMonth()+1); renderCalendar(); renderWeek(); });
+  document.getElementById('hoyBtn').addEventListener('click', ()=>{ current = new Date(); current.setHours(0,0,0,0); renderCalendar(); loadDay(); renderWeek(); });
 
   // ---------- Inicial ----------
+  attachSteppers(Object.keys(inputs));
   renderCalendar();
   loadDay();
   renderWeek();
